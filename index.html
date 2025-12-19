@@ -126,6 +126,13 @@
     }
     .inspector-label { font-size: 9px; font-weight: 800; color: var(--primary); letter-spacing: 2px; margin-bottom: 12px; display: block; }
 
+    .fx-params-container {
+      margin-top: 15px; display: flex; flex-direction: column; gap: 10px;
+      padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .fx-param-row { display: flex; flex-direction: column; gap: 4px; }
+    .fx-param-row label { font-size: 8px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+
     /* TIMELINE */
     #arrangement {
       flex: 1; display: flex; flex-direction: column;
@@ -298,6 +305,10 @@
             <option value="delay">Analog Echo Delay</option>
             <option value="normalize">Loudness Norm (Offline)</option>
         </select>
+        
+        <div id="fx-params" class="fx-params-container">
+          <!-- Parametros dinamicos aqui -->
+        </div>
       </div>
 
       <button class="btn-track" style="width:100%; padding:15px; margin-top:auto;" id="btnAddTrack">+ NOVA PISTA DE ÁUDIO</button>
@@ -346,6 +357,11 @@
         const track = {
           id, name, buffer, volume: 1.0, pan: 0,
           muted: false, armed: false, fx: 'none',
+          fxParams: {
+            compressor: { threshold: -24, ratio: 4 },
+            distortion: { amount: 50 },
+            delay: { time: 0.3, feedback: 0.4 }
+          },
           eq: { l, m, h, vals: {low:0, mid:0, high:0} },
           node: null
         };
@@ -375,6 +391,13 @@
             }
         }
         UI.render();
+        UI.updateInspector(); // Refresh FX params UI
+      },
+
+      updateFXParam(fxType, paramName, val) {
+        const t = this.tracks.find(x => x.id === this.selId);
+        if(!t) return;
+        t.fxParams[fxType][paramName] = parseFloat(val);
       },
 
       updateEQ(band, val) {
@@ -411,8 +434,48 @@
           const g = this.ctx.createGain(); g.gain.value = t.muted ? 0 : t.volume;
           const p = this.ctx.createStereoPanner(); p.pan.value = t.pan;
           
-          s.connect(t.eq.l); t.eq.l.connect(t.eq.m); t.eq.m.connect(t.eq.h);
-          t.eq.h.connect(p); p.connect(g); g.connect(this.masterGain);
+          let lastNode = s;
+          
+          // EQ Chain
+          lastNode.connect(t.eq.l); t.eq.l.connect(t.eq.m); t.eq.m.connect(t.eq.h);
+          lastNode = t.eq.h;
+
+          // Efeitos de Inserção
+          if (t.fx === 'compressor') {
+              const comp = this.ctx.createDynamicsCompressor();
+              comp.threshold.setValueAtTime(t.fxParams.compressor.threshold, this.ctx.currentTime);
+              comp.ratio.setValueAtTime(t.fxParams.compressor.ratio, this.ctx.currentTime);
+              lastNode.connect(comp); lastNode = comp;
+          } else if (t.fx === 'distortion') {
+              const shaper = this.ctx.createWaveShaper();
+              const amount = t.fxParams.distortion.amount;
+              const n_samples = 44100;
+              const curve = new Float32Array(n_samples);
+              const deg = Math.PI / 180;
+              for (let i = 0 ; i < n_samples; ++i ) {
+                  let x = i * 2 / n_samples - 1;
+                  curve[i] = (3 + amount) * x * 20 * deg / (Math.PI + amount * Math.abs(x));
+              }
+              shaper.curve = curve;
+              lastNode.connect(shaper); lastNode = shaper;
+          } else if (t.fx === 'delay') {
+              const delay = this.ctx.createDelay();
+              delay.delayTime.value = t.fxParams.delay.time;
+              const feedback = this.ctx.createGain();
+              feedback.gain.value = t.fxParams.delay.feedback;
+              const wet = this.ctx.createGain();
+              wet.gain.value = 0.5;
+              
+              lastNode.connect(delay);
+              delay.connect(feedback);
+              feedback.connect(delay);
+              delay.connect(wet);
+              wet.connect(p); // Wet signal parallel
+          }
+
+          lastNode.connect(p);
+          p.connect(g);
+          g.connect(this.masterGain);
           
           s.start(0); t.node = s;
         });
@@ -452,7 +515,6 @@
         if(b) b.classList.add('active'); 
         else document.getElementById(`tool-${t}`).classList.add('active');
         
-        // Atualiza Cursor Visual
         const arrangement = document.getElementById('arrangement');
         if(t === 'scissors') arrangement.style.cursor = 'crosshair';
         else if(t === 'eraser') arrangement.style.cursor = 'not-allowed';
@@ -564,6 +626,41 @@
         document.getElementById('eq-low').value = t.eq.vals.low;
         document.getElementById('eq-mid').value = t.eq.vals.mid;
         document.getElementById('eq-high').value = t.eq.vals.high;
+        
+        const fxContainer = document.getElementById('fx-params');
+        fxContainer.innerHTML = '';
+        
+        if (t.fx === 'compressor') {
+            fxContainer.innerHTML = `
+                <div class="fx-param-row">
+                    <label>Threshold: ${t.fxParams.compressor.threshold}dB</label>
+                    <input type="range" min="-60" max="0" value="${t.fxParams.compressor.threshold}" oninput="Engine.updateFXParam('compressor', 'threshold', this.value); UI.updateInspector()">
+                </div>
+                <div class="fx-param-row">
+                    <label>Ratio: ${t.fxParams.compressor.ratio}:1</label>
+                    <input type="range" min="1" max="20" value="${t.fxParams.compressor.ratio}" oninput="Engine.updateFXParam('compressor', 'ratio', this.value); UI.updateInspector()">
+                </div>
+            `;
+        } else if (t.fx === 'distortion') {
+            fxContainer.innerHTML = `
+                <div class="fx-param-row">
+                    <label>Drive / Saturation: ${t.fxParams.distortion.amount}</label>
+                    <input type="range" min="0" max="400" value="${t.fxParams.distortion.amount}" oninput="Engine.updateFXParam('distortion', 'amount', this.value); UI.updateInspector()">
+                </div>
+            `;
+        } else if (t.fx === 'delay') {
+            fxContainer.innerHTML = `
+                <div class="fx-param-row">
+                    <label>Time: ${t.fxParams.delay.time}s</label>
+                    <input type="range" min="0.01" max="1.5" step="0.01" value="${t.fxParams.delay.time}" oninput="Engine.updateFXParam('delay', 'time', this.value); UI.updateInspector()">
+                </div>
+                <div class="fx-param-row">
+                    <label>Feedback: ${Math.round(t.fxParams.delay.feedback * 100)}%</label>
+                    <input type="range" min="0" max="0.9" step="0.01" value="${t.fxParams.delay.feedback}" oninput="Engine.updateFXParam('delay', 'feedback', this.value); UI.updateInspector()">
+                </div>
+            `;
+        }
+
         document.querySelectorAll('.track').forEach((el, i) => {
             if(Engine.tracks[i]) el.classList.toggle('selected', Engine.tracks[i].id === t.id);
         });
@@ -609,7 +706,6 @@
       UI.loading(false);
     };
 
-    // INÍCIO AUTOMÁTICO COM PISTA
     window.onload = async () => {
         await Engine.init();
         Engine.addTrack(null, "Lead Vocal Track");
