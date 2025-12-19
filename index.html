@@ -132,11 +132,17 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 8px 12px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05);
     }
+    .track-info { display: flex; align-items: center; gap: 8px; }
     .track-name { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
-    .track-actions { display: flex; gap: 8px; }
-    .btn-icon-small { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; transition: 0.2s; }
-    .btn-icon-small:hover { color: #fff; }
+    .track-actions { display: flex; gap: 10px; align-items: center; }
+    
+    .btn-icon-small { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; transition: 0.2s; padding: 4px; }
+    .btn-icon-small:hover { color: #fff; transform: scale(1.1); }
     .btn-icon-small.danger:hover { color: var(--danger); }
+    
+    .btn-arm { color: #555; }
+    .btn-arm.armed { color: var(--primary); text-shadow: 0 0 10px var(--primary); animation: pulseArm 2s infinite; }
+    @keyframes pulseArm { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
     .track-body { display: flex; align-items: center; padding: 10px; gap: 10px; }
     
@@ -160,7 +166,7 @@
     }
 
     /* Waveform (Direita) */
-    .track-wave { flex: 1; height: 60px; background: rgba(0,0,0,0.2); border-radius: 6px; position: relative; overflow: hidden; }
+    .track-wave { flex: 1; height: 60px; background: rgba(0,0,0,0.2); border-radius: 6px; position: relative; overflow: hidden; cursor: text; }
     .track-wave canvas { width: 100%; height: 100%; display: block; }
 
     /* Barra de Transporte (Bottom Fixo) */
@@ -289,18 +295,20 @@
         },
 
         addTrack(buffer = null, name = "Faixa de Áudio") {
-            const trackId = Date.now();
+            const trackId = Date.now() + Math.floor(Math.random()*1000);
             const track = {
                 id: trackId,
                 name: name,
                 buffer: buffer, // AudioBuffer
                 gainNode: this.ctx.createGain(),
                 sourceNode: null,
-                effectNode: null,
                 volume: 1.0,
                 muted: false,
                 solo: false,
                 effect: 'none',
+                armed: false,
+                selStart: 0,
+                selEnd: 0,
                 dom: null
             };
             
@@ -325,6 +333,52 @@
                 this.tracks[idx].dom.remove();
                 this.tracks.splice(idx, 1);
             }
+        },
+
+        toggleArm(id) {
+            this.tracks.forEach(t => {
+                if (t.id === id) t.armed = !t.armed;
+                else t.armed = false; // Solo arm (simples)
+                
+                // Atualiza UI
+                const btn = t.dom.querySelector('.btn-arm');
+                if(t.armed) btn.classList.add('armed');
+                else btn.classList.remove('armed');
+            });
+        },
+
+        cutSelection(id) {
+            const track = this.tracks.find(t => t.id === id);
+            if (!track || !track.buffer) return;
+            if (Math.abs(track.selEnd - track.selStart) < 0.001) return alert("Selecione um trecho na onda para cortar.");
+
+            const rate = track.buffer.sampleRate;
+            const channels = track.buffer.numberOfChannels;
+            const startFrame = Math.floor(track.selStart * track.buffer.length);
+            const endFrame = Math.floor(track.selEnd * track.buffer.length);
+            const cutLen = endFrame - startFrame;
+            const newLen = track.buffer.length - cutLen;
+
+            if (newLen <= 0) {
+                track.buffer = null; // Apagou tudo
+                UI.drawWaveform(track);
+                return;
+            }
+
+            const newBuffer = this.ctx.createBuffer(channels, newLen, rate);
+
+            for (let c = 0; c < channels; c++) {
+                const oldData = track.buffer.getChannelData(c);
+                const newData = newBuffer.getChannelData(c);
+                // Copia parte antes da seleção
+                newData.set(oldData.subarray(0, startFrame));
+                // Copia parte depois da seleção (concatena)
+                newData.set(oldData.subarray(endFrame), startFrame);
+            }
+
+            track.buffer = newBuffer;
+            track.selStart = 0; track.selEnd = 0; // Reseta seleção
+            UI.drawWaveform(track);
         },
 
         play() {
@@ -377,8 +431,10 @@
 
         async startRecording() {
             await this.init();
-            // Para playback se estiver rolando
             if (this.isPlaying) this.stop();
+
+            // Verifica se tem track armada
+            const armedTrack = this.tracks.find(t => t.armed);
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
@@ -391,7 +447,17 @@
                     const blob = new Blob(this.recordingChunks, { type: 'audio/webm' });
                     const arrayBuffer = await blob.arrayBuffer();
                     const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
-                    this.addTrack(audioBuffer, "Gravação " + (this.tracks.length + 1));
+                    
+                    if (armedTrack) {
+                        armedTrack.buffer = audioBuffer;
+                        UI.drawWaveform(armedTrack);
+                        // Desarma após gravar
+                        armedTrack.armed = false; 
+                        armedTrack.dom.querySelector('.btn-arm').classList.remove('armed');
+                    } else {
+                        this.addTrack(audioBuffer, "Gravação " + (this.tracks.length + 1));
+                    }
+                    
                     stream.getTracks().forEach(t => t.stop());
                 };
                 
@@ -434,9 +500,6 @@
                 
                 let input = source;
                 if (t.effect !== 'none') {
-                    // Recriar efeito no contexto offline (simplificado para não duplicar código complexo, usaremos gain simples se FX complexo falhar ou implementar versões offline)
-                    // Para este exemplo, aplicaremos apenas o ganho para garantir robustez, ou replicaríamos a lógica createEffect passando o context.
-                    // Vamos tentar replicar a lógica simples:
                     if (t.effect === 'echo') {
                         const d = offlineCtx.createDelay(); d.delayTime.value = 0.4;
                         const f = offlineCtx.createGain(); f.gain.value = 0.4;
@@ -445,7 +508,6 @@
                         source.connect(m); d.connect(m);
                         input = m;
                     }
-                    // Adicione outros efeitos offline aqui se necessário
                 }
 
                 input.connect(gain);
@@ -455,7 +517,6 @@
 
             const renderedBuffer = await offlineCtx.startRendering();
             
-            // Encode to MP3 (LameJS)
             UI.showOverlay("Codificando MP3...");
             setTimeout(() => {
                this.encodeMP3(renderedBuffer); 
@@ -463,12 +524,11 @@
         },
 
         encodeMP3(buffer) {
-            const mp3encoder = new lamejs.Mp3Encoder(1, 44100, 192); // Mono for simplicity or converting stereo
-            const samples = buffer.getChannelData(0); // Pegando canal esquerdo para mono mix
+            const mp3encoder = new lamejs.Mp3Encoder(1, 44100, 192); 
+            const samples = buffer.getChannelData(0); 
             const sampleBlockSize = 1152;
             const mp3Data = [];
             
-            // Convert float to int16
             const samplesInt16 = new Int16Array(samples.length);
             for (let i = 0; i < samples.length; i++) {
                 samplesInt16[i] = samples[i] < 0 ? samples[i] * 0x8000 : samples[i] * 0x7FFF;
@@ -486,7 +546,6 @@
             const blob = new Blob(mp3Data, { type: 'audio/mp3' });
             const url = URL.createObjectURL(blob);
             
-            // Download Trigger
             const a = document.createElement('a');
             a.href = url;
             a.download = `Canneli_Mix_${Date.now()}.mp3`;
@@ -495,7 +554,6 @@
             UI.hideOverlay();
         },
 
-        // Fábrica de Efeitos (Retorna {in: node, out: node})
         createEffect(type) {
             const input = this.ctx.createGain();
             const output = this.ctx.createGain();
@@ -505,11 +563,11 @@
                 delay.delayTime.value = 0.4;
                 const feedback = this.ctx.createGain();
                 feedback.gain.value = 0.4;
-                input.connect(output); // Dry
+                input.connect(output); 
                 input.connect(delay);
                 delay.connect(feedback);
                 feedback.connect(delay);
-                delay.connect(output); // Wet
+                delay.connect(output);
             } else if (type === 'robot') {
                 const osc = this.ctx.createOscillator();
                 osc.frequency.value = 50;
@@ -550,10 +608,15 @@
         createTrackElement(track) {
             const div = document.createElement('div');
             div.className = 'track';
+            div.id = `track_${track.id}`;
             div.innerHTML = `
                 <div class="track-header">
-                    <span class="track-name" contenteditable="true">${track.name}</span>
+                    <div class="track-info">
+                        <span class="track-name" contenteditable="true">${track.name}</span>
+                    </div>
                     <div class="track-actions">
+                        <button class="btn-icon-small btn-arm" title="Armar para Gravação" onclick="AudioEngine.toggleArm(${track.id})">●</button>
+                        <button class="btn-icon-small" title="Cortar Seleção" onclick="AudioEngine.cutSelection(${track.id})">✂️</button>
                         <button class="btn-icon-small danger" onclick="AudioEngine.removeTrack(${track.id})">✕</button>
                     </div>
                 </div>
@@ -577,6 +640,47 @@
                     </div>
                 </div>
             `;
+            
+            // Eventos de Seleção no Canvas
+            setTimeout(() => {
+                const cv = div.querySelector('canvas');
+                let isSelecting = false;
+                let startX = 0;
+
+                const getX = (e) => {
+                    const rect = cv.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    return Math.max(0, Math.min(clientX - rect.left, rect.width)) / rect.width;
+                };
+
+                const startSel = (e) => {
+                    isSelecting = true;
+                    startX = getX(e);
+                    track.selStart = startX;
+                    track.selEnd = startX;
+                    UI.drawWaveform(track);
+                };
+
+                const moveSel = (e) => {
+                    if(!isSelecting) return;
+                    e.preventDefault(); // Previne scroll no mobile
+                    const curX = getX(e);
+                    track.selStart = Math.min(startX, curX);
+                    track.selEnd = Math.max(startX, curX);
+                    UI.drawWaveform(track);
+                };
+
+                const endSel = () => { isSelecting = false; };
+
+                cv.addEventListener('mousedown', startSel);
+                window.addEventListener('mousemove', moveSel);
+                window.addEventListener('mouseup', endSel);
+                
+                cv.addEventListener('touchstart', startSel, {passive: false});
+                window.addEventListener('touchmove', moveSel, {passive: false});
+                window.addEventListener('touchend', endSel);
+            }, 0);
+
             return div;
         },
 
@@ -585,13 +689,10 @@
             if(t) {
                 t.muted = !t.muted;
                 btn.classList.toggle('active');
-                // Se estiver tocando, atualiza gain em tempo real
                 if(t.gainNode) t.gainNode.gain.value = t.muted ? 0 : t.volume;
             }
         },
         toggleSolo(id, btn) {
-            // Lógica de solo simplificada: Muta todos os outros
-            // Em uma DAW real é mais complexo, aqui vamos focar no visual por enquanto
             btn.classList.toggle('active');
         },
         updateVol(id, val) {
@@ -607,18 +708,22 @@
         },
 
         drawWaveform(track) {
-            setTimeout(() => {
+            // Usa requestAnimationFrame para evitar lag
+            requestAnimationFrame(() => {
                 const cv = document.getElementById(`cv_${track.id}`);
-                if(!cv) return;
+                if(!cv || !track.buffer) return;
                 const ctx = cv.getContext('2d');
+                const w = cv.width; const h = cv.height;
                 const data = track.buffer.getChannelData(0);
-                const step = Math.ceil(data.length / cv.width);
-                const amp = cv.height / 2;
+                const step = Math.ceil(data.length / w);
+                const amp = h / 2;
                 
-                ctx.clearRect(0,0,cv.width, cv.height);
-                ctx.fillStyle = "#ff0055"; // Wave color
+                ctx.clearRect(0,0,w,h);
+                
+                // Desenha onda
+                ctx.fillStyle = "#ff0055"; 
                 ctx.beginPath();
-                for(let i=0; i < cv.width; i++){
+                for(let i=0; i < w; i++){
                     let min = 1.0; let max = -1.0;
                     for (let j=0; j<step; j++) {
                         const datum = data[(i*step)+j];
@@ -627,7 +732,20 @@
                     }
                     ctx.fillRect(i, (1+min)*amp, 1, Math.max(1, (max-min)*amp));
                 }
-            }, 50); // Delay pequeno para garantir render
+
+                // Desenha Seleção
+                if (track.selEnd > track.selStart) {
+                    const sX = track.selStart * w;
+                    const eX = track.selEnd * w;
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                    ctx.fillRect(sX, 0, eX - sX, h);
+                    ctx.strokeStyle = "#fff";
+                    ctx.beginPath();
+                    ctx.moveTo(sX,0); ctx.lineTo(sX,h);
+                    ctx.moveTo(eX,0); ctx.lineTo(eX,h);
+                    ctx.stroke();
+                }
+            });
         },
 
         setPlayState(playing) {
