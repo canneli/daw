@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Canneli DAW Pro - Elite Studio</title>
+  <title>Canneli Editor Beta - Elite Studio</title>
   
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff0055'/%3E%3Cstop offset='100%25' stop-color='%238800ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='120' fill='url(%23bg)'/%3E%3Cpath d='M128 256h0m32-96v192m64-288v384m64-256v128m64-192v256m64-64h0' stroke='%23ffffff' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -48,18 +48,25 @@
 
     /* MENU SUPERIOR (TOP COMMAND) */
     .top-menu-bar {
-        height: 30px;
-        background: rgba(0, 0, 0, 0.8);
+        height: 35px;
+        background: rgba(0, 0, 0, 0.9);
         border-bottom: 1px solid var(--glass-border);
         display: flex; align-items: center; padding: 0 15px;
         gap: 20px; z-index: 500;
     }
-    .menu-item {
-        font-size: 10px; font-weight: 700; color: #ccc;
-        text-transform: uppercase; letter-spacing: 1px;
-        cursor: pointer; transition: 0.2s;
+    
+    .logo {
+        font-weight: 900; font-size: 11px; letter-spacing: 2px;
+        color: #fff; text-transform: uppercase; margin-right: 15px;
     }
-    .menu-item:hover { color: var(--primary); }
+    .logo span { color: var(--primary); font-size: 9px; opacity: 0.8; }
+
+    .menu-item {
+        font-size: 10px; font-weight: 700; color: #aaa;
+        text-transform: uppercase; letter-spacing: 1px;
+        cursor: pointer; transition: 0.2s; position: relative;
+    }
+    .menu-item:hover { color: #fff; }
 
     /* TOOLBAR (TOOLS & TRANSPORT) */
     .main-toolbar {
@@ -109,7 +116,10 @@
       backdrop-filter: blur(40px); border-right: 1px solid var(--glass-border);
       display: flex; flex-direction: column; padding: 25px; gap: 20px;
       overflow-y: auto; z-index: 100;
+      transition: transform 0.3s ease;
     }
+    #inspector.hidden { transform: translateX(-260px); position: absolute; }
+
     .inspector-card {
       background: var(--glass); border: 1px solid var(--glass-border);
       border-radius: 12px; padding: 15px;
@@ -195,6 +205,13 @@
         display: none; flex-direction: column; justify-content: center; align-items: center;
         color: #fff; font-weight: 900; letter-spacing: 5px;
     }
+    
+    .message-toast {
+        position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff;
+        padding: 10px 20px; border-radius: 5px; font-size: 11px; font-weight: 700;
+        display: none; z-index: 2000; animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   </style>
 </head>
 <body>
@@ -203,40 +220,41 @@
 
   <!-- MENU BAR SUPERIOR -->
   <nav class="top-menu-bar">
-      <div class="menu-item">Arquivo</div>
-      <div class="menu-item">Editar</div>
-      <div class="menu-item">Exibir</div>
-      <div class="menu-item">Ajustes</div>
-      <div class="menu-item">Plugins</div>
-      <div style="margin-left:auto; font-size: 10px; opacity: 0.5;">Canneli Studio v3.2 PRO</div>
+      <div class="logo">Canneli <span>Editor Beta</span></div>
+      <div class="menu-item" onclick="UI.menuAction('arquivo')">Arquivo</div>
+      <div class="menu-item" onclick="UI.menuAction('editar')">Editar</div>
+      <div class="menu-item" onclick="UI.menuAction('exibir')">Exibir</div>
+      <div class="menu-item" onclick="UI.menuAction('ajustes')">Ajustes</div>
+      <div class="menu-item" onclick="UI.menuAction('plugins')">Plugins</div>
+      <div style="margin-left:auto; font-size: 10px; opacity: 0.5;">Stable Build v3.5 PRO</div>
   </nav>
 
   <!-- MAIN TOOLBAR -->
   <section class="main-toolbar">
       <div class="tools-group">
-          <button class="tool-btn active" onclick="UI.setTool('pointer', this)" title="Ponteiro">
+          <button class="tool-btn active" id="tool-pointer" onclick="UI.setTool('pointer', this)" title="Ponteiro (Mover)">
               <svg viewBox="0 0 24 24"><path d="M7 2l12 11.2l-5.8 1.4l3.3 6.1l-2.2 1.2l-3.3-6.1L7 19.3V2z"/></svg>
           </button>
-          <button class="tool-btn" onclick="UI.setTool('scissors', this)" title="Tesoura">
+          <button class="tool-btn" id="tool-scissors" onclick="UI.setTool('scissors', this)" title="Tesoura (Cortar)">
               <svg viewBox="0 0 24 24"><path d="M19 3l-6 9l6 9h2l-6-9l6-9h-2zM5 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2z"/></svg>
           </button>
-          <button class="tool-btn" onclick="UI.setTool('eraser', this)" title="Borracha">
+          <button class="tool-btn" id="tool-eraser" onclick="UI.setTool('eraser', this)" title="Borracha (Apagar)">
               <svg viewBox="0 0 24 24"><path d="M16.2 3.3L20.7 7.8c.4.4.4 1 0 1.4L11.5 18.5c-.2.2-.4.3-.7.3H5c-.6 0-1-.4-1-1v-5.8c0-.3.1-.5.3-.7l9.2-9.2c.5-.3 1.1-.3 1.7.2z"/></svg>
           </button>
-          <button class="tool-btn" id="btnImport" title="Importar">
+          <button class="tool-btn" id="btnImport" title="Importar Ficheiro Áudio">
               <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
           </button>
       </div>
 
       <div class="transport-center">
-          <button class="btn-transport" id="btnStop">■</button>
-          <button class="btn-transport" id="btnPlay">▶</button>
-          <button class="btn-transport" id="btnRecord" style="color:var(--primary)">●</button>
+          <button class="btn-transport" id="btnStop" title="Parar Reprodução">■</button>
+          <button class="btn-transport" id="btnPlay" title="Tocar / Pausar">▶</button>
+          <button class="btn-transport" id="btnRecord" style="color:var(--primary)" title="Gravar em Faixa Armada">●</button>
           <div id="lcd">00:00:00</div>
       </div>
 
       <div class="tools-group">
-          <button class="btn-transport" id="btnExport" title="Exportar Mixdown" style="background:var(--secondary); border:none;">💾</button>
+          <button class="btn-transport" id="btnExport" title="Exportar Master Mix" style="background:var(--secondary); border:none;">💾</button>
       </div>
   </section>
 
@@ -246,39 +264,39 @@
     <!-- INSPECTOR (LEFT SIDEBAR) -->
     <aside id="inspector">
       <div class="inspector-card">
-        <span class="inspector-label">FAIXA SELECIONADA</span>
-        <p id="sel-track-name" style="font-size: 13px; font-weight: 800; margin: 0 0 15px 0; color:#fff">Track 1</p>
+        <span class="inspector-label">CANAL ATIVO</span>
+        <p id="sel-track-name" style="font-size: 13px; font-weight: 800; margin: 0 0 15px 0; color:#fff">Vocal Track</p>
         
-        <label style="font-size:8px; color:var(--text-muted); font-weight:900;">GAIN STAGING</label>
+        <label style="font-size:8px; color:var(--text-muted); font-weight:900;">PRÉ-GANHO</label>
         <input type="range" min="0" max="1.5" step="0.01" value="1" id="insp-vol" oninput="Engine.updateParam('volume', this.value)" style="width:100%; margin-top:5px;">
       </div>
 
       <div class="inspector-card">
-        <span class="inspector-label">ESTUDIO EQ</span>
+        <span class="inspector-label">CHANNEL STRIP EQ</span>
         <div class="eq-container">
             <div class="fader-box">
-                <input type="range" class="v-slider" min="-15" max="15" value="0" oninput="Engine.updateEQ('low', this.value)">
+                <input type="range" class="v-slider" id="eq-low" min="-15" max="15" value="0" oninput="Engine.updateEQ('low', this.value)">
                 <label>LOW</label>
             </div>
             <div class="fader-box">
-                <input type="range" class="v-slider" min="-15" max="15" value="0" oninput="Engine.updateEQ('mid', this.value)">
+                <input type="range" class="v-slider" id="eq-mid" min="-15" max="15" value="0" oninput="Engine.updateEQ('mid', this.value)">
                 <label>MID</label>
             </div>
             <div class="fader-box">
-                <input type="range" class="v-slider" min="-15" max="15" value="0" oninput="Engine.updateEQ('high', this.value)">
+                <input type="range" class="v-slider" id="eq-high" min="-15" max="15" value="0" oninput="Engine.updateEQ('high', this.value)">
                 <label>HIGH</label>
             </div>
         </div>
       </div>
 
       <div class="inspector-card">
-        <span class="inspector-label">INSERT SLOTS</span>
+        <span class="inspector-label">PLUGINS DE INSERÇÃO</span>
         <select id="insp-fx" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--glass-border); border-radius:8px; font-size:10px;" onchange="Engine.updateParam('fx', this.value)">
-            <option value="none">Empty Slot</option>
-            <option value="compressor">Classic Comp</option>
-            <option value="distortion">Tube Saturation</option>
-            <option value="delay">Analog Delay</option>
-            <option value="normalize">Loudness Normalize</option>
+            <option value="none">Slot Vazio</option>
+            <option value="compressor">Classic Compressor</option>
+            <option value="distortion">Tube Saturator</option>
+            <option value="delay">Analog Echo Delay</option>
+            <option value="normalize">Loudness Norm (Offline)</option>
         </select>
       </div>
 
@@ -293,11 +311,12 @@
   </div>
 
   <footer>
-      <span>Canneli Elite Studio Pro | 48kHz High Fidelity Engine</span>
-      <span style="margin-left:auto;">CPU: 2% | Disk: 0% | Ready</span>
+      <span>Canneli Engine Core v4.0 | High Definition 48kHz</span>
+      <span style="margin-left:auto;" id="footer-status">Pronto para a sessão</span>
   </footer>
 
-  <div id="overlay">A PROCESSAR...</div>
+  <div id="overlay">A PROCESSAR SINAL...</div>
+  <div class="message-toast" id="toast">Ação executada com sucesso</div>
   <input type="file" id="fileInput" hidden accept="audio/*">
 
   <script>
@@ -316,7 +335,7 @@
         if (this.ctx.state === 'suspended') await this.ctx.resume();
       },
 
-      addTrack(buffer = null, name = "Audio Track") {
+      addTrack(buffer = null, name = "Nova Pista") {
         const id = Date.now() + Math.random();
         
         // Config EQ Inicial
@@ -327,7 +346,7 @@
         const track = {
           id, name, buffer, volume: 1.0, pan: 0,
           muted: false, armed: false, fx: 'none',
-          eq: { l, m, h, vals: {l:0, m:0, h:0} },
+          eq: { l, m, h, vals: {low:0, mid:0, high:0} },
           node: null
         };
         this.tracks.push(track);
@@ -348,8 +367,12 @@
         if(!t) return;
         if(type === 'volume') t.volume = parseFloat(val);
         if(type === 'fx') {
-            if(['invert', 'normalize'].includes(val)) this.applyDestructive(t.id, val);
-            else t.fx = val;
+            if(['normalize'].includes(val)) {
+                this.applyDestructive(t.id, val);
+                t.fx = 'none';
+            } else {
+                t.fx = val;
+            }
         }
         UI.render();
       },
@@ -358,14 +381,15 @@
         const t = this.tracks.find(x => x.id === this.selId);
         if(!t || !t.eq.l) return;
         t.eq.vals[band] = parseFloat(val);
-        t.eq[band].gain.setValueAtTime(parseFloat(val), this.ctx.currentTime);
+        const map = { low: t.eq.l, mid: t.eq.m, high: t.eq.h };
+        map[band].gain.setValueAtTime(parseFloat(val), this.ctx.currentTime);
       },
 
       async applyDestructive(id, type) {
         const t = this.tracks.find(x => x.id === id);
-        if(!t || !t.buffer) return;
+        if(!t || !t.buffer) return alert("Esta faixa não contém áudio para processar!");
         UI.loading(true);
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 600));
         const b = t.buffer;
         for(let c=0; c<b.numberOfChannels; c++) {
             const d = b.getChannelData(c);
@@ -375,6 +399,7 @@
             }
         }
         UI.render(); UI.loading(false);
+        UI.toast("Áudio Normalizado");
       },
 
       play() {
@@ -385,8 +410,10 @@
           const s = this.ctx.createBufferSource(); s.buffer = t.buffer;
           const g = this.ctx.createGain(); g.gain.value = t.muted ? 0 : t.volume;
           const p = this.ctx.createStereoPanner(); p.pan.value = t.pan;
+          
           s.connect(t.eq.l); t.eq.l.connect(t.eq.m); t.eq.m.connect(t.eq.h);
           t.eq.h.connect(p); p.connect(g); g.connect(this.masterGain);
+          
           s.start(0); t.node = s;
         });
         this.isPlaying = true; UI.updateTransport(); UI.startCursor();
@@ -400,7 +427,7 @@
       async rec() {
           await this.init();
           const armed = this.tracks.find(t => t.armed);
-          if(!armed) return alert("Arma uma pista primeiro (●)!");
+          if(!armed) return alert("Primeiro arma uma pista clicando no botão circular ● da faixa!");
           try {
               const str = await navigator.mediaDevices.getUserMedia({ audio: true });
               this.chunks = []; this.recorder = new MediaRecorder(str);
@@ -411,7 +438,7 @@
                   armed.buffer = buf; armed.armed = false; UI.render(); this.updateMax();
               };
               this.recorder.start(); UI.setRecUI(true);
-          } catch(e) { alert("Microfone Offline."); }
+          } catch(e) { alert("Microfone Offline ou Acesso Negado."); }
       },
 
       stopRec() { if(this.recorder && this.recorder.state==='recording'){ this.recorder.stop(); UI.setRecUI(false); } }
@@ -419,7 +446,46 @@
 
     // --- UI ---
     const UI = {
-      setTool(t, b) { Engine.tool = t; document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); },
+      setTool(t, b) { 
+        Engine.tool = t; 
+        document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); 
+        if(b) b.classList.add('active'); 
+        else document.getElementById(`tool-${t}`).classList.add('active');
+        
+        // Atualiza Cursor Visual
+        const arrangement = document.getElementById('arrangement');
+        if(t === 'scissors') arrangement.style.cursor = 'crosshair';
+        else if(t === 'eraser') arrangement.style.cursor = 'not-allowed';
+        else arrangement.style.cursor = 'default';
+      },
+
+      menuAction(type) {
+          switch(type) {
+              case 'arquivo':
+                  this.toast("Menu Arquivo: Use Importar/Exportar na Toolbar.");
+                  break;
+              case 'editar':
+                  this.toast("Dica: Use as ferramentas Tesoura e Borracha.");
+                  break;
+              case 'exibir':
+                  const insp = document.getElementById('inspector');
+                  insp.classList.toggle('hidden');
+                  this.toast(insp.classList.contains('hidden') ? "Inspetor Oculto" : "Inspetor Visível");
+                  break;
+              case 'ajustes':
+                  alert("Configurações Canneli Editor Beta:\nEngine: 48kHz\nBuffer: 512ms\nTheme: Deluxe Purple");
+                  break;
+              case 'plugins':
+                  this.toast("Plugins carregados: Compressor, Saturator, Echo.");
+                  break;
+          }
+      },
+
+      toast(msg) {
+          const t = document.getElementById('toast');
+          t.innerText = msg; t.style.display = 'block';
+          setTimeout(() => t.style.display = 'none', 3000);
+      },
 
       render() {
         const area = document.getElementById('arrangement');
@@ -428,10 +494,10 @@
         Engine.tracks.forEach(t => {
           const div = document.createElement('div');
           div.className = `track ${t.id === Engine.selId ? 'selected' : ''}`;
-          div.onclick = () => Engine.select(t.id);
+          div.onclick = (e) => this.handleTrackInteraction(t, e);
           div.innerHTML = `
             <div class="track-controls">
-              <input type="text" class="track-name-input" value="${t.name}">
+              <input type="text" class="track-name-input" value="${t.name}" onchange="Engine.tracks.find(x=>x.id===${t.id}).name=this.value; UI.updateInspector()">
               <div class="track-mixer-mini">
                 <div class="pan-knob-box">
                     <div class="pan-knob" id="knob-${t.id}" style="transform: rotate(${t.pan*135}deg)" onmousedown="UI.knob(event, ${t.id})"></div>
@@ -450,6 +516,17 @@
           area.appendChild(div);
           this.wave(t);
         });
+      },
+
+      handleTrackInteraction(track, event) {
+          if(Engine.tool === 'eraser') {
+              this.del(track.id);
+              this.toast("Pista Apagada");
+          } else if(Engine.tool === 'scissors') {
+              this.toast("Função de Corte ativada (Simulação Beta)");
+          } else {
+              Engine.select(track.id);
+          }
       },
 
       knob(e, id) {
@@ -484,9 +561,12 @@
         document.getElementById('sel-track-name').innerText = t.name;
         document.getElementById('insp-vol').value = t.volume;
         document.getElementById('insp-fx').value = t.fx;
-        const sliders = document.querySelectorAll('.v-slider');
-        sliders[0].value = t.eq.vals.l; sliders[1].value = t.eq.vals.m; sliders[2].value = t.eq.vals.h;
-        document.querySelectorAll('.track').forEach((el, i) => el.classList.toggle('selected', Engine.tracks[i].id === t.id));
+        document.getElementById('eq-low').value = t.eq.vals.low;
+        document.getElementById('eq-mid').value = t.eq.vals.mid;
+        document.getElementById('eq-high').value = t.eq.vals.high;
+        document.querySelectorAll('.track').forEach((el, i) => {
+            if(Engine.tracks[i]) el.classList.toggle('selected', Engine.tracks[i].id === t.id);
+        });
       },
 
       arm(id, b) { Engine.tracks.find(x=>x.id===id).armed = !Engine.tracks.find(x=>x.id===id).armed; b.classList.toggle('rec-active'); },
@@ -525,14 +605,15 @@
     document.getElementById('fileInput').onchange = async (e) => {
       const f = e.target.files[0]; if(!f) return;
       await Engine.init(); UI.loading(true);
-      try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(e){alert("Erro!");}
+      try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(e){alert("Erro ao importar!");}
       UI.loading(false);
     };
 
     // INÍCIO AUTOMÁTICO COM PISTA
     window.onload = async () => {
         await Engine.init();
-        Engine.addTrack(null, "VOCAL TRACK 01");
+        Engine.addTrack(null, "Lead Vocal Track");
+        UI.toast("Canneli Editor Beta Iniciado");
     };
   </script>
 </body>
