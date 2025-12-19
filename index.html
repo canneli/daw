@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Canneli Editor Beta - Elite Studio</title>
+  <title>Canneli Editor Beta | Next-Gen DAW</title>
   
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff0055'/%3E%3Cstop offset='100%25' stop-color='%238800ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='120' fill='url(%23bg)'/%3E%3Cpath d='M128 256h0m32-96v192m64-288v384m64-256v128m64-192v256m64-64h0' stroke='%23ffffff' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 
   <style>
@@ -14,382 +16,284 @@
       --primary: #ff0055;
       --secondary: #8800ff;
       --accent: #00f2ff;
-      --bg-deep: #050108;
-      --glass: rgba(255, 255, 255, 0.05);
-      --glass-bright: rgba(255, 255, 255, 0.12);
-      --glass-border: rgba(255, 255, 255, 0.15);
+      --bg-deep: #08090f;
+      --bg-surface: #11131f;
+      --glass: rgba(255, 255, 255, 0.04);
+      --glass-bright: rgba(255, 255, 255, 0.1);
+      --border: rgba(255, 255, 255, 0.1);
       --text: #ffffff;
-      --text-muted: #aaaaaa;
+      --text-dim: #94a3b8;
+      --glow-primary: 0 0 20px rgba(255, 0, 85, 0.4);
+      --glow-accent: 0 0 15px rgba(0, 242, 255, 0.4);
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
     body {
       width: 100vw; height: 100vh;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       background-color: var(--bg-deep);
       color: var(--text);
       margin: 0; overflow: hidden;
       display: flex; flex-direction: column;
     }
 
-    /* BACKGROUND ANIMADO */
-    .bg-anim { 
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; 
-      background: radial-gradient(circle at 5% 5%, #300, transparent 40%), 
-                  radial-gradient(circle at 95% 95%, #103, transparent 40%); 
+    /* Ambient Glow Background */
+    .bg-aura {
+      position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(circle at 5% 5%, rgba(255, 0, 85, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 95% 95%, rgba(136, 0, 255, 0.08) 0%, transparent 40%);
     }
-    .bg-anim::after { 
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; 
-      background: conic-gradient(from 0deg at 50% 50%, rgba(136,0,255,0.03), transparent, rgba(255,0,85,0.03), transparent); 
-      animation: rotateBG 50s linear infinite; 
-    }
-    @keyframes rotateBG { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* MENU SUPERIOR COM SUBSEÇÕES */
-    .top-menu-bar {
-        height: 38px;
-        background: #000;
-        border-bottom: 1px solid var(--glass-border);
-        display: flex; align-items: center; padding: 0 20px;
-        gap: 5px; z-index: 1000;
+    /* TOP COMMAND BAR */
+    .top-bar {
+      height: 36px; background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; padding: 0 20px;
+      border-bottom: 1px solid var(--border); font-size: 11px;
+      font-weight: 600; gap: 5px; z-index: 1100;
     }
-    
-    .logo {
-        font-weight: 900; font-size: 13px; letter-spacing: 1px;
-        color: #fff; text-transform: uppercase; margin-right: 25px;
-    }
-    .logo span { color: var(--primary); font-weight: 400; font-size: 10px; margin-left: 5px; }
+    .logo { font-weight: 800; letter-spacing: 1px; margin-right: 20px; cursor: default; }
+    .logo span { color: var(--primary); font-size: 9px; margin-left: 5px; text-transform: uppercase; }
 
-    .menu-container { position: relative; display: inline-block; }
-    .menu-item {
-        font-size: 11px; font-weight: 700; color: #bbb;
-        padding: 8px 12px; border-radius: 4px;
-        text-transform: uppercase; letter-spacing: 0.5px;
-        cursor: pointer; transition: 0.2s;
-    }
+    .menu-wrap { position: relative; height: 100%; display: flex; align-items: center; }
+    .menu-item { color: var(--text-dim); cursor: pointer; transition: 0.2s; padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 2px; }
     .menu-item:hover { color: #fff; background: var(--glass); }
 
-    /* SUBSEÇÕES (DROPDOWNS) */
+    /* Dropdowns */
     .dropdown {
-        position: absolute; top: 100%; left: 0;
-        background: rgba(15, 5, 25, 0.98); backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border); border-radius: 8px;
-        min-width: 180px; display: none; flex-direction: column;
-        padding: 8px 0; margin-top: 2px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        z-index: 1100;
+        position: absolute; top: 100%; left: 0; background: #0c0d14; border: 1px solid var(--border);
+        border-radius: 0 0 8px 8px; min-width: 180px; display: none; flex-direction: column; padding: 8px 0;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.8);
     }
-    .menu-container:hover .dropdown { display: flex; }
-    .dropdown-item {
-        padding: 10px 18px; font-size: 11px; font-weight: 600;
-        color: #ddd; cursor: pointer; transition: 0.2s;
-    }
-    .dropdown-item:hover { background: var(--primary); color: #fff; }
-    .divider { height: 1px; background: var(--glass-border); margin: 6px 0; }
+    .menu-wrap:hover .dropdown { display: flex; }
+    .drop-btn { padding: 10px 18px; font-size: 11px; font-weight: 600; color: #bbb; cursor: pointer; }
+    .drop-btn:hover { background: var(--primary); color: #fff; }
 
-    /* MAIN TOOLBAR */
-    .main-toolbar {
-        height: 70px;
-        background: rgba(15, 5, 25, 0.85);
-        backdrop-filter: blur(25px);
-        border-bottom: 1px solid var(--glass-border);
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 25px; z-index: 400;
+    /* MAIN HEADER */
+    .main-header {
+      height: 75px; background: rgba(20, 22, 35, 0.9); backdrop-filter: blur(30px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 25px;
+      justify-content: space-between; z-index: 900;
     }
 
-    .tools-group { display: flex; gap: 10px; }
+    .toolbar-tools { display: flex; background: rgba(0,0,0,0.4); padding: 5px; border-radius: 10px; gap: 5px; border: 1px solid var(--border); }
     .tool-btn {
-        width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--glass-border);
-        background: var(--glass); color: #fff; cursor: pointer;
-        display: flex; align-items: center; justify-content: center; transition: 0.2s;
+      width: 38px; height: 38px; border-radius: 7px; border: none;
+      background: transparent; color: var(--text-dim); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: 0.2s;
     }
-    .tool-btn:hover { background: var(--glass-bright); border-color: #fff; }
-    .tool-btn.active { 
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border: none; box-shadow: 0 0 15px rgba(255,0,85,0.4);
-    }
-    .tool-btn svg { width: 16px; height: 16px; fill: currentColor; }
+    .tool-btn:hover { color: #fff; background: var(--glass-bright); }
+    .tool-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow-primary); }
+    .tool-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-    .transport-center { display: flex; align-items: center; gap: 15px; }
-    #lcd {
-      background: #000; border: 1px solid rgba(255,0,85,0.4);
-      padding: 6px 20px; border-radius: 8px;
-      font-family: 'Orbitron', sans-serif; color: var(--primary);
-      font-size: 18px; min-width: 140px; text-align: center;
-      text-shadow: 0 0 12px var(--primary);
-      box-shadow: inset 0 0 10px #000;
+    .transport-box { display: flex; align-items: center; gap: 18px; }
+    .lcd-display {
+      background: #000; border: 1.5px solid rgba(255, 0, 85, 0.4);
+      padding: 6px 18px; border-radius: 12px; display: flex; align-items: center; gap: 20px;
+      box-shadow: inset 0 2px 15px rgba(0,0,0,1);
     }
-    .btn-transport {
-        width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border);
-        background: var(--glass); color: #fff; cursor: pointer;
-        display: flex; align-items: center; justify-content: center; transition: 0.3s;
-    }
-    .btn-transport:hover { transform: scale(1.1); background: var(--glass-bright); }
-    .btn-transport.active { background: var(--primary); box-shadow: 0 0 25px var(--primary); border: none; }
+    #timer { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 21px; min-width: 130px; text-align: center; text-shadow: 0 0 10px var(--primary); letter-spacing: 1px; }
 
-    /* APP LAYOUT */
-    .app-body { flex: 1; display: flex; overflow: hidden; position: relative; }
+    .metro-ui { display: flex; align-items: center; gap: 10px; border-left: 1px solid #2d2d3d; padding-left: 15px; }
+    .metro-btn {
+      background: transparent; border: 1.5px solid #2d2d3d; color: #4b5563;
+      width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+    }
+    .metro-btn.active { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
+    .bpm-field { width: 42px; background: transparent; border: none; color: var(--accent); font-family: 'Orbitron', sans-serif; font-size: 14px; text-align: center; outline: none; }
+
+    .btn-main-play { width: 46px; height: 46px; border-radius: 50%; border: none; background: #fff; color: #000; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .btn-main-play.active { background: var(--primary); color: #fff; box-shadow: var(--glow-primary); }
+
+    /* LAYOUT CORE */
+    .app-workspace { flex: 1; display: flex; overflow: hidden; }
 
     /* INSPECTOR */
     #inspector {
-      width: 270px; background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(40px); border-right: 1px solid var(--glass-border);
-      display: flex; flex-direction: column; padding: 25px; gap: 20px;
-      overflow-y: auto; z-index: 100;
+      width: 300px; background: var(--bg-surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 25px; gap: 20px; overflow-y: auto;
+      backdrop-filter: blur(40px);
     }
-    .inspector-card {
-      background: var(--glass); border: 1px solid var(--glass-border);
-      border-radius: 12px; padding: 18px;
-    }
-    .inspector-label { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; margin-bottom: 15px; display: block; text-transform: uppercase; }
+    .ins-block { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    .ins-block h5 { font-size: 10px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin: 0 0 15px 0; letter-spacing: 2px; opacity: 0.8; border-bottom: 1px solid rgba(255,0,85,0.1); padding-bottom: 8px; }
 
-    /* TIMELINE */
-    #arrangement {
-      flex: 1; display: flex; flex-direction: column;
-      overflow-y: auto; background: rgba(0,0,0,0.3); position: relative;
-    }
-    #arrangement.drag-active { background: rgba(255, 0, 85, 0.1); outline: 2px dashed var(--primary); outline-offset: -10px; }
-
-    #playback-cursor {
-      position: absolute; top: 0; left: 0; width: 2px; height: 100%;
-      background: #fff; z-index: 50; pointer-events: none;
-      box-shadow: 0 0 15px #fff; display: none;
-    }
-
-    /* TRACKS */
-    .track {
-      height: 130px; display: flex;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      background: rgba(255,255,255,0.01); transition: 0.2s;
-    }
-    .track.selected { background: rgba(255, 0, 85, 0.08); border-left: 5px solid var(--primary); }
-
-    .track-controls {
-      width: 230px; background: rgba(0,0,0,0.4);
-      border-right: 1px solid var(--glass-border);
-      padding: 15px; display: flex; flex-direction: column; justify-content: space-between;
-    }
-    .track-name-input {
-        background: transparent; border: none; color: #fff; font-weight: 800;
-        font-size: 14px; outline: none; width: 100%; letter-spacing: 0.5px;
-    }
-
-    .track-mixer-mini { display: flex; align-items: center; gap: 10px; }
+    /* ARRANGEMENT */
+    #arrangement { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: rgba(0,0,0,0.2); position: relative; }
     
-    .pan-knob-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .pan-knob {
-        width: 34px; height: 34px; background: #111; border-radius: 50%;
-        border: 2px solid var(--glass-border); position: relative; cursor: ns-resize;
-    }
-    .pan-knob::after {
-        content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
-        width: 3px; height: 8px; background: var(--primary); border-radius: 2px;
-        transform-origin: center 13px;
-    }
+    /* TRACK DESIGN */
+    .track { height: 140px; display: flex; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.01); position: relative; transition: 0.2s; }
+    .track.selected { background: rgba(255, 255, 255, 0.04); border-left: 6px solid var(--primary); }
+    
+    .track-head { width: 250px; background: rgba(0,0,0,0.5); border-right: 1px solid var(--border); padding: 18px; display: flex; flex-direction: column; justify-content: space-between; z-index: 50; position: relative; }
+    .track-name-input { background: transparent; border: none; color: #fff; font-weight: 700; font-size: 15px; width: 100%; outline: none; opacity: 0.9; }
 
-    .track-btn-group { display: flex; gap: 8px; }
-    .btn-track {
-        width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--glass-border);
-        background: var(--glass); color: var(--text-muted); font-weight: 900; font-size: 11px;
-        cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
-    }
-    .btn-track:hover { background: var(--glass-bright); color: #fff; }
-    .btn-track.m-active { background: #ff9f43; color: #000; border-color: #ff9f43; }
-    .btn-track.rec-active { color: var(--primary); border-color: var(--primary); text-shadow: 0 0 10px var(--primary); animation: pulseArm 2s infinite; }
-    .btn-track.fx-active { color: var(--accent); border-color: var(--accent); }
+    .track-mixer-bar { display: flex; align-items: center; gap: 12px; }
+    
+    /* PAN KNOB (RODINHA) */
+    .pan-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .pan-rodinha { width: 34px; height: 34px; background: #0f111a; border-radius: 50%; border: 2px solid var(--border); position: relative; cursor: ns-resize; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+    .pan-rodinha::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 9px; background: var(--primary); border-radius: 1px; transform-origin: center 14px; }
+    .pan-label { font-size: 7px; font-weight: 900; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
-    @keyframes pulseArm { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    .track-tools { display: flex; gap: 6px; }
+    .b-action { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--glass); color: var(--text-dim); font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .b-action:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .b-action.m-active { background: #f59e0b; color: #000; border-color: #f59e0b; }
+    .b-action.r-active { color: var(--primary); border-color: var(--primary); box-shadow: var(--glow-primary); animation: pulseRec 1.5s infinite; }
+    .b-action.fx-active { color: var(--accent); border-color: var(--accent); text-shadow: var(--glow-accent); }
 
-    .wave-view { flex: 1; position: relative; cursor: crosshair; }
-    .wave-view canvas { width: 100%; height: 100%; }
+    @keyframes pulseRec { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    /* EQ & FADERS */
-    .eq-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    .fader-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .fader-box label { font-size: 8px; color: var(--text-muted); font-weight: 800; letter-spacing: 1px; }
-    .v-slider { -webkit-appearance: slider-vertical; width: 6px; height: 90px; background: #222; border-radius: 3px; }
+    .wave-viewport { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.15); }
+    .track-cursor { position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: #fff; z-index: 5; pointer-events: none; box-shadow: 0 0 15px #fff; display: none; }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    /* FADERS & SLIDERS */
+    .eq-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+    .fader-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .fader-cell label { font-size: 9px; font-weight: 900; color: var(--text-dim); letter-spacing: 1px; }
+    .fader-v { -webkit-appearance: slider-vertical; width: 10px; height: 110px; background: #262a3d; border-radius: 5px; }
+
+    .fx-params { margin-top: 15px; display: flex; flex-direction: column; gap: 12px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .fx-param-row { display: flex; flex-direction: column; gap: 6px; }
+    .fx-param-row label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
+
+    input[type=range] { -webkit-appearance: none; background: #262a3d; height: 4px; border-radius: 2px; width: 100%; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2.5px solid #08090f; box-shadow: 0 0 10px var(--primary); }
 
     /* FOOTER */
-    footer {
-        height: 40px; background: #000; border-top: 1px solid var(--glass-border);
-        display: flex; align-items: center; padding: 0 25px; font-size: 10px; color: #666;
-        letter-spacing: 1px; font-weight: 600;
-    }
+    footer { height: 35px; background: #000; border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 25px; font-size: 10px; color: #475569; font-weight: 700; }
 
-    input[type=range] { -webkit-appearance: none; background: #1a1a1a; height: 3px; border-radius: 2px; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2px solid #000; box-shadow: 0 0 5px var(--primary); }
-
-    #overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
-        display: none; flex-direction: column; justify-content: center; align-items: center;
-        color: #fff; font-weight: 900; letter-spacing: 8px; font-size: 18px;
-    }
-    
-    .message-toast {
-        position: fixed; bottom: 60px; right: 30px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff;
-        padding: 12px 25px; border-radius: 8px; font-size: 12px; font-weight: 800;
-        display: none; z-index: 2500; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 10px 30px rgba(255,0,85,0.3);
-    }
-    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    #toast { position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 800; font-size: 12px; display: none; z-index: 2000; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   </style>
 </head>
 <body>
 
-  <div class="bg-anim"></div>
+  <div class="bg-aura"></div>
 
-  <!-- MENU BAR SUPERIOR COM SUBSEÇÕES -->
-  <nav class="top-menu-bar">
-      <div class="logo">Canneli Editor <span>Beta Studio</span></div>
-      
-      <div class="menu-container">
-          <div class="menu-item">Arquivo</div>
-          <div class="dropdown">
-              <div class="dropdown-item" onclick="UI.menuAction('novo')">Novo Projeto</div>
-              <div class="dropdown-item" onclick="document.getElementById('fileInput').click()">Abrir Áudio...</div>
-              <div class="divider"></div>
-              <div class="dropdown-item" onclick="UI.menuAction('salvar')">Salvar Sessão</div>
-              <div class="dropdown-item" onclick="Engine.exportMix()">Exportar Master Mix</div>
-          </div>
-      </div>
+  <!-- MENU SUPREMO -->
+  <nav class="top-bar">
+    <div class="logo">CANNELI<span>Editor Beta</span></div>
+    
+    <div class="menu-wrap">
+        <div class="menu-item">Arquivo</div>
+        <div class="dropdown">
+            <div class="drop-btn" onclick="UI.toast('Novo Projeto Criado')">Novo Projeto</div>
+            <div class="drop-btn" onclick="document.getElementById('file-in').click()">Importar Áudio...</div>
+            <div class="drop-btn" onclick="UI.toast('Projeto Salvo')">Salvar Sessão</div>
+            <div class="drop-btn" onclick="UI.toast('Renderizando Master Mix...')">Exportar Mixdown</div>
+        </div>
+    </div>
+    <div class="menu-wrap">
+        <div class="menu-item">Editar</div>
+        <div class="dropdown">
+            <div class="drop-btn">Desfazer</div>
+            <div class="drop-btn">Refazer</div>
+            <div class="drop-btn">Cortar Tudo</div>
+        </div>
+    </div>
+    <div class="menu-wrap">
+        <div class="menu-item" onclick="UI.toggleInspector()">Exibir</div>
+    </div>
+    <div class="menu-wrap">
+        <div class="menu-item">Ajustes</div>
+    </div>
 
-      <div class="menu-container">
-          <div class="menu-item">Editar</div>
-          <div class="dropdown">
-              <div class="dropdown-item">Desfazer (Cmd+Z)</div>
-              <div class="dropdown-item">Refazer</div>
-              <div class="divider"></div>
-              <div class="dropdown-item" onclick="UI.setTool('scissors')">Cortar Região</div>
-              <div class="dropdown-item" onclick="UI.setTool('eraser')">Apagar Selecionada</div>
-          </div>
-      </div>
-
-      <div class="menu-container">
-          <div class="menu-item">Exibir</div>
-          <div class="dropdown">
-              <div class="dropdown-item" onclick="UI.toggleInspector()">Alternar Inspetor</div>
-              <div class="dropdown-item">Mixer Global</div>
-              <div class="dropdown-item">Editor de Ondas</div>
-          </div>
-      </div>
-
-      <div class="menu-container">
-          <div class="menu-item">Ajustes</div>
-          <div class="dropdown">
-              <div class="dropdown-item">Configurações de Áudio</div>
-              <div class="dropdown-item">Metrónomo</div>
-              <div class="dropdown-item" onclick="UI.menuAction('tema')">Tema de Cores</div>
-          </div>
-      </div>
-
-      <div class="menu-container">
-          <div class="menu-item">Plugins</div>
-          <div class="dropdown">
-              <div class="dropdown-item">Gerenciador de VST</div>
-              <div class="divider"></div>
-              <div class="dropdown-item">Reverb Espacial</div>
-              <div class="dropdown-item">Limiter Pro</div>
-          </div>
-      </div>
-      
-      <div style="margin-left:auto; font-size: 10px; font-weight: 800; color: var(--primary); opacity: 0.8; letter-spacing: 1px;">ELITE PRO v4.2</div>
+    <div style="margin-left: auto; color: var(--primary); letter-spacing: 1px; font-size: 10px; opacity: 0.9;">LOGIC NEXT GEN v8.5</div>
   </nav>
 
-  <!-- MAIN TOOLBAR -->
-  <section class="main-toolbar">
-      <div class="tools-group">
-          <button class="tool-btn active" id="tool-pointer" onclick="UI.setTool('pointer', this)" title="Ponteiro (Mover)">
-              <svg viewBox="0 0 24 24"><path d="M7 2l12 11.2l-5.8 1.4l3.3 6.1l-2.2 1.2l-3.3-6.1L7 19.3V2z"/></svg>
-          </button>
-          <button class="tool-btn" id="tool-scissors" onclick="UI.setTool('scissors', this)" title="Tesoura (Cortar)">
-              <svg viewBox="0 0 24 24"><path d="M19 3l-6 9l6 9h2l-6-9l6-9h-2zM5 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2z"/></svg>
-          </button>
-          <button class="tool-btn" id="tool-eraser" onclick="UI.setTool('eraser', this)" title="Borracha (Apagar)">
-              <svg viewBox="0 0 24 24"><path d="M16.2 3.3L20.7 7.8c.4.4.4 1 0 1.4L11.5 18.5c-.2.2-.4.3-.7.3H5c-.6 0-1-.4-1-1v-5.8c0-.3.1-.5.3-.7l9.2-9.2c.5-.3 1.1-.3 1.7.2z"/></svg>
-          </button>
-      </div>
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="toolbar-tools">
+      <button class="tool-btn active" id="tool-p" onclick="UI.setTool('pointer', this)" title="Ponteiro">
+        <svg viewBox="0 0 24 24"><path d="M7 2l12 11.2l-5.8 1.4l3.3 6.1l-2.2 1.2l-3.3-6.1L7 19.3V2z"/></svg>
+      </button>
+      <button class="tool-btn" id="tool-s" onclick="UI.setTool('scissors', this)" title="Tesoura">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+      </button>
+      <button class="tool-btn" id="tool-e" onclick="UI.setTool('eraser', this)" title="Apagar">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.24 3.56l4.95 4.94c.78.79.78 2.05 0 2.84L12 20.53a4.008 4.008 0 0 1-5.66 0L2.81 17c-.78-.79-.78-2.05 0-2.84l8.48-8.49c.79-.78 2.05-.78 2.84 0l2.11 2.11 5.66-5.66a1 1 0 0 1 1.41 1.41l-7.07 7.07"/></svg>
+      </button>
+      <button class="tool-btn" onclick="document.getElementById('file-in').click()" title="Importar">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 15h2V9h3l-4-5-4 5h3v6zM4 18h16v-2h2v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-2h2v2z"/></svg>
+      </button>
+    </div>
 
-      <div class="transport-center">
-          <button class="btn-transport" id="btnStop" title="Parar Reprodução">■</button>
-          <button class="btn-transport" id="btnPlay" title="Tocar / Pausar">▶</button>
-          <button class="btn-transport" id="btnRecord" style="color:var(--primary)" title="Gravar em Faixa Armada">●</button>
-          <div id="lcd">00:00:00</div>
+    <div class="transport-box">
+      <button class="tool-btn" onclick="Engine.stop()" style="font-size: 11px;">■</button>
+      <button class="btn-main-play" id="play-btn" onclick="Engine.play()">▶</button>
+      <button class="tool-btn" id="rec-master" style="color: var(--primary);" onclick="Engine.recAction()">●</button>
+      
+      <div class="lcd-display">
+        <div id="timer">00:00:00</div>
+        <div class="metro-ui">
+          <button class="metro-btn" id="m-btn" onclick="Engine.toggleMetro()" title="Metrónomo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L8.5,21H15.5L12,2M12,5.1L14,16H10L12,5.1M12,7A1,1 0 0,0 11,8A1,1 0 0,0 12,9A1,1 0 0,0 13,8A1,1 0 0,0 12,7Z"/></svg>
+          </button>
+          <input type="number" class="bpm-field" value="120" onchange="Engine.bpm = this.value">
+        </div>
       </div>
+    </div>
 
-      <div class="tools-group">
-          <button class="btn-transport" id="btnExport" onclick="Engine.exportMix()" title="Exportar Master Mix" style="background:var(--secondary); border:none;">💾</button>
-      </div>
-  </section>
+    <button class="tool-btn" style="background: rgba(136,0,255,0.15); color: #fff;" onclick="UI.toast('Guardado na Nuvem')">💾</button>
+  </header>
 
-  <!-- APP CONTENT -->
-  <div class="app-body">
-    
-    <!-- INSPECTOR -->
+  <!-- WORKSPACE -->
+  <div class="app-workspace">
     <aside id="inspector">
-      <div class="inspector-card">
-        <span class="inspector-label">Canal de Áudio</span>
-        <p id="sel-track-name" style="font-size: 15px; font-weight: 900; margin: 0 0 15px 0; color:#fff">Lead Vocal</p>
-        
-        <label style="font-size:9px; color:var(--text-muted); font-weight:900;">INPUT GAIN</label>
-        <input type="range" min="0" max="1.5" step="0.01" value="1" id="insp-vol" oninput="Engine.updateParam('volume', this.value)" style="width:100%; margin-top:8px;">
+      <div class="ins-block">
+        <h5>Canal Mixer</h5>
+        <p id="ins-track-label" style="font-size: 16px; font-weight: 700; color: #fff; margin: 0 0 10px 0;">Faixa 1</p>
+        <label style="font-size: 9px; font-weight: 800; color: var(--text-dim);">FADER VOLUME</label>
+        <input type="range" min="0" max="1.5" step="0.01" value="1" id="ins-vol" oninput="Engine.updateTrack('volume', this.value)">
       </div>
 
-      <div class="inspector-card">
-        <span class="inspector-label">Equalização Master</span>
+      <div class="ins-block">
+        <h5>Elite Boutique EQ</h5>
         <div class="eq-container">
-            <div class="fader-box">
-                <input type="range" class="v-slider" id="eq-low" min="-15" max="15" value="0" oninput="Engine.updateEQ('low', this.value)">
-                <label>LOW</label>
-            </div>
-            <div class="fader-box">
-                <input type="range" class="v-slider" id="eq-mid" min="-15" max="15" value="0" oninput="Engine.updateEQ('mid', this.value)">
-                <label>MID</label>
-            </div>
-            <div class="fader-box">
-                <input type="range" class="v-slider" id="eq-high" min="-15" max="15" value="0" oninput="Engine.updateEQ('high', this.value)">
-                <label>HIGH</label>
-            </div>
+          <div class="fader-cell"><input type="range" class="fader-v" id="eq-l" min="-15" max="15" value="0" oninput="Engine.updateEQ('low', this.value)"><label>LOW</label></div>
+          <div class="fader-cell"><input type="range" class="fader-v" id="eq-m" min="-15" max="15" value="0" oninput="Engine.updateEQ('mid', this.value)"><label>MID</label></div>
+          <div class="fader-cell"><input type="range" class="fader-v" id="eq-h" min="-15" max="15" value="0" oninput="Engine.updateEQ('high', this.value)"><label>HIGH</label></div>
         </div>
       </div>
 
-      <div class="inspector-card">
-        <span class="inspector-label">Inserção de Efeitos</span>
-        <select id="insp-fx" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--glass-border); border-radius:8px; font-size:11px; font-weight:700;" onchange="Engine.updateParam('fx', this.value)">
-            <option value="none">Nenhum Plugin</option>
-            <option value="compressor">Classic Compressor</option>
-            <option value="distortion">Warm Distortion</option>
-            <option value="delay">Analog Echo</option>
-            <option value="normalize">Normalize (Offline)</option>
+      <div class="ins-block">
+        <h5>Plugins Rack</h5>
+        <select id="ins-fx" style="width:100%; padding:14px; background:#000; color:#fff; border:1.5px solid var(--border); border-radius:10px; font-size:12px; font-weight:800;" onchange="Engine.updateTrack('fx', this.value)">
+          <option value="none">Slot Vazio</option>
+          <option value="studio">Studio Hall</option>
+          <option value="magic">Magic Bright</option>
+          <option value="robotic">Robotic Vox</option>
+          <option value="bitcrusher">Lo-Fi Crush</option>
+          <option value="normalize">Normalize</option>
         </select>
-        
-        <div id="fx-params" class="fx-params-container"></div>
+        <div id="fx-params" class="fx-params"></div>
       </div>
 
-      <button class="btn-track" style="width:100%; padding:18px; margin-top:auto; background: var(--glass-bright); border-color: var(--primary);" id="btnAddTrack">+ NOVA PISTA DE ÁUDIO</button>
+      <button class="b-action" style="width:100%; height:55px; margin-top:auto; background: rgba(255,0,85,0.12); border-color: var(--primary); font-size: 12px; letter-spacing: 1px;" onclick="Engine.addTrack()">+ ADICIONAR PISTA</button>
     </aside>
 
-    <!-- TIMELINE -->
-    <section id="arrangement">
-      <div id="playback-cursor"></div>
-    </section>
-
+    <main id="arrangement">
+      <!-- Tracks aqui -->
+    </main>
   </div>
 
   <footer>
-      <span>CANNELI ENGINE CORE v4.2 HD | 48kHz 32-bit Float</span>
-      <span style="margin-left:auto;" id="footer-status">Arraste áudios para cá para adicionar</span>
+    <span>CANNELI ENGINE V8.5 | HIGH FIDELITY 48kHz | 32-BIT FLOAT | DRAG & DROP READY</span>
+    <span style="margin-left:auto;">Arraste áudios diretamente para importar pistas.</span>
   </footer>
 
-  <div id="overlay">PROCESSANDO ÁUDIO...</div>
-  <div class="message-toast" id="toast">Ação executada com sucesso</div>
-  <input type="file" id="fileInput" hidden accept="audio/*" multiple>
+  <div id="toast">Ação Executada</div>
+  <input type="file" id="file-in" hidden accept="audio/*" multiple>
 
   <script>
-    // --- ENGINE ---
     const Engine = {
       ctx: null, tracks: [], isPlaying: false, startTime: 0,
       masterGain: null, maxDur: 5, selId: null,
       tool: 'pointer', recorder: null, chunks: [],
+      metroOn: false, bpm: 120, nextClick: 0,
 
       async init() {
         if (!this.ctx) {
@@ -400,285 +304,209 @@
         if (this.ctx.state === 'suspended') await this.ctx.resume();
       },
 
-      addTrack(buffer = null, name = "Nova Pista") {
+      addTrack(buffer = null, name = null) {
         const id = Date.now() + Math.random();
+        const fname = name || ("Faixa " + (this.tracks.length + 1));
+        
         const l = this.ctx ? this.ctx.createBiquadFilter() : null; if(l) l.type = 'lowshelf';
         const m = this.ctx ? this.ctx.createBiquadFilter() : null; if(m) { m.type = 'peaking'; m.frequency.value = 1000; }
         const h = this.ctx ? this.ctx.createBiquadFilter() : null; if(h) h.type = 'highshelf';
 
         const track = {
-          id, name, buffer, volume: 1.0, pan: 0,
+          id, name: fname, buffer, volume: 1.0, pan: 0,
           muted: false, armed: false, fx: 'none',
-          fxParams: {
-            compressor: { threshold: -24, ratio: 4 },
-            distortion: { amount: 50 },
-            delay: { time: 0.3, feedback: 0.4 }
-          },
+          fxParams: { intensity: 0.5 },
           eq: { l, m, h, vals: {low:0, mid:0, high:0} },
           node: null
         };
         this.tracks.push(track);
         this.updateMax();
+        this.selId = id;
         UI.render();
-        this.select(id);
+        UI.updateInspector();
         return track;
       },
 
-      select(id) { this.selId = id; UI.updateInspector(); },
-
       updateMax() {
-        let max = 0; this.tracks.forEach(t => { if(t.buffer && t.buffer.duration > max) max = t.buffer.duration; });
-        this.maxDur = max || 5;
+        let max = 5; this.tracks.forEach(t => { if(t.buffer && t.buffer.duration > max) max = t.buffer.duration; });
+        this.maxDur = max;
       },
 
-      updateParam(type, val) {
-        const t = this.tracks.find(x => x.id === this.selId);
-        if(!t) return;
+      updateTrack(type, val) {
+        const t = this.tracks.find(x => x.id === this.selId); if(!t) return;
         if(type === 'volume') t.volume = parseFloat(val);
-        if(type === 'fx') {
-            if(['normalize'].includes(val)) {
-                this.applyDestructive(t.id, val);
-                t.fx = 'none';
-            } else { t.fx = val; }
-        }
-        UI.render();
-        UI.updateInspector();
-      },
-
-      updateFXParam(fxType, paramName, val) {
-        const t = this.tracks.find(x => x.id === this.selId);
-        if(!t) return;
-        t.fxParams[fxType][paramName] = parseFloat(val);
+        if(type === 'fx') t.fx = val;
+        UI.render(); UI.updateInspector();
       },
 
       updateEQ(band, val) {
-        const t = this.tracks.find(x => x.id === this.selId);
-        if(!t || !t.eq.l) return;
+        const t = this.tracks.find(x => x.id === this.selId); if(!t || !t.eq.l) return;
         t.eq.vals[band] = parseFloat(val);
         const map = { low: t.eq.l, mid: t.eq.m, high: t.eq.h };
         map[band].gain.setValueAtTime(parseFloat(val), this.ctx.currentTime);
       },
 
-      async applyDestructive(id, type) {
-        const t = this.tracks.find(x => x.id === id);
-        if(!t || !t.buffer) return alert("Pista vazia!");
-        UI.loading(true);
-        await new Promise(r => setTimeout(r, 600));
-        const b = t.buffer;
-        for(let c=0; c<b.numberOfChannels; c++) {
-            const d = b.getChannelData(c);
-            if(type === 'normalize') {
-                let p = 0; for(let i=0; i<d.length; i++) if(Math.abs(d[i])>p) p=Math.abs(d[i]);
-                if(p>0) { const m=1/p; for(let i=0; i<d.length; i++) d[i]*=m; }
-            }
-        }
-        UI.render(); UI.loading(false);
-        UI.toast("Normalização Concluída");
-      },
+      toggleMetro() { this.metroOn = !this.metroOn; document.getElementById('m-btn').classList.toggle('active', this.metroOn); },
 
       play() {
         this.init(); if(this.isPlaying) this.stop();
         this.updateMax(); this.startTime = this.ctx.currentTime;
+        this.nextClick = 0;
         this.tracks.forEach(t => {
           if(!t.buffer) return;
           const s = this.ctx.createBufferSource(); s.buffer = t.buffer;
           const g = this.ctx.createGain(); g.gain.value = t.muted ? 0 : t.volume;
           const p = this.ctx.createStereoPanner(); p.pan.value = t.pan;
-          let last = s;
-          last.connect(t.eq.l); t.eq.l.connect(t.eq.m); t.eq.m.connect(t.eq.h);
-          last = t.eq.h;
-          last.connect(p); p.connect(g); g.connect(this.masterGain);
+          let chain = s;
+          chain.connect(t.eq.l); t.eq.l.connect(t.eq.m); t.eq.m.connect(t.eq.h);
+          chain = t.eq.h;
+          chain.connect(p); p.connect(g); g.connect(this.masterGain);
           s.start(0); t.node = s;
         });
-        this.isPlaying = true; UI.updateTransport(); UI.startCursor();
+        this.isPlaying = true; UI.updateTransport(true); UI.startCursor();
       },
 
       stop() {
         this.tracks.forEach(t => { if(t.node) { try{t.node.stop();}catch(e){} t.node = null; } });
-        this.isPlaying = false; UI.updateTransport(); UI.stopCursor();
+        this.isPlaying = false; UI.updateTransport(false); UI.stopCursor();
+        this.stopRec();
       },
 
-      exportMix() { UI.toast("Preparando Renderização Master..."); setTimeout(() => UI.toast("Exportação não disponível em Beta público."), 1500); }
+      async recAction() {
+        await this.init();
+        if(this.recorder && this.recorder.state === 'recording') { this.stopRec(); return; }
+        const armed = this.tracks.find(x => x.armed);
+        if(!armed) return alert("Clica no ● de uma faixa primeiro!");
+        
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.chunks = []; this.recorder = new MediaRecorder(stream);
+          this.recorder.ondataavailable = e => this.chunks.push(e.data);
+          this.recorder.onstop = async () => {
+            const blob = new Blob(this.chunks, { type: 'audio/webm' });
+            const buf = await this.ctx.decodeAudioData(await blob.arrayBuffer());
+            armed.buffer = buf; armed.armed = false; UI.render(); this.updateMax();
+          };
+          this.recorder.start();
+          document.getElementById('rec-master').classList.add('active');
+        } catch(e) { alert("Microfone Desativado."); }
+      },
+
+      stopRec() { if(this.recorder && this.recorder.state === 'recording') { this.recorder.stop(); document.getElementById('rec-master').classList.remove('active'); } }
     };
 
-    // --- UI ---
     const UI = {
-      setTool(t, b) { 
-        Engine.tool = t; 
-        document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); 
-        if(b) b.classList.add('active'); 
-        else {
-            const btn = document.getElementById(`tool-${t}`);
-            if(btn) btn.classList.add('active');
-        }
-        const arr = document.getElementById('arrangement');
-        arr.style.cursor = t === 'scissors' ? 'crosshair' : (t === 'eraser' ? 'no-drop' : 'default');
-      },
-
-      toggleInspector() { document.getElementById('inspector').style.display = document.getElementById('inspector').style.display === 'none' ? 'flex' : 'none'; },
-
-      menuAction(t) { this.toast("Menu: " + t.toUpperCase()); },
-
-      toast(msg) {
-          const t = document.getElementById('toast');
-          t.innerText = msg; t.style.display = 'block';
-          setTimeout(() => t.style.display = 'none', 3000);
-      },
+      setTool(t, b) { Engine.tool = t; document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); },
+      toggleInspector() { const ins = document.getElementById('inspector'); ins.style.display = ins.style.display === 'none' ? 'flex' : 'none'; },
+      updateTransport(p) { document.getElementById('play-btn').classList.toggle('active', p); },
+      toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2000); },
 
       render() {
         const area = document.getElementById('arrangement');
-        const cursor = document.getElementById('playback-cursor');
-        area.innerHTML = ''; area.appendChild(cursor);
+        area.innerHTML = '';
         Engine.tracks.forEach(t => {
           const div = document.createElement('div');
           div.className = `track ${t.id === Engine.selId ? 'selected' : ''}`;
-          div.onclick = (e) => this.handleTrackInteraction(t, e);
+          div.onclick = () => { Engine.selId = t.id; UI.render(); UI.updateInspector(); };
           div.innerHTML = `
-            <div class="track-controls">
-              <input type="text" class="track-name-input" value="${t.name}" onchange="Engine.tracks.find(x=>x.id===${t.id}).name=this.value; UI.updateInspector()">
-              <div class="track-mixer-mini">
-                <div class="pan-knob-box">
-                    <div class="pan-knob" id="knob-${t.id}" style="transform: rotate(${t.pan*135}deg)" onmousedown="UI.knob(event, ${t.id})"></div>
-                    <span style="font-size:8px; font-weight:900; color:var(--text-muted)">PAN</span>
+            <div class="track-head">
+              <input type="text" class="track-name-input" value="${t.name}">
+              <div class="track-mixer-bar">
+                <div class="pan-box">
+                    <div class="pan-rodinha" id="knob-${t.id}" style="transform: rotate(${t.pan*135}deg)" onmousedown="UI.knobDrag(event, ${t.id})"></div>
+                    <span class="pan-label">PAN</span>
                 </div>
-                <div class="track-btn-group">
-                    <button class="btn-track ${t.armed?'rec-active':''}" onclick="event.stopPropagation(); UI.arm(${t.id}, this)">●</button>
-                    <button class="btn-track ${t.muted?'m-active':''}" onclick="event.stopPropagation(); UI.mute(${t.id}, this)">M</button>
-                    <button class="btn-track ${t.fx!=='none'?'fx-active':''}">FX</button>
-                    <button class="btn-track" onclick="event.stopPropagation(); UI.del(${t.id})">✕</button>
+                <div class="track-tools">
+                  <button class="b-action ${t.armed?'r-active':''}" onclick="event.stopPropagation(); Engine.tracks.forEach(x=>x.armed=false); Engine.tracks.find(x=>x.id===${t.id}).armed=true; UI.render();">●</button>
+                  <button class="b-action ${t.muted?'m-active':''}" onclick="event.stopPropagation(); Engine.tracks.find(x=>x.id===${t.id}).muted=!Engine.tracks.find(x=>x.id===${t.id}).muted; UI.render();">M</button>
+                  <button class="b-action ${t.fx!=='none'?'fx-active':''}" title="FX Rack">FX</button>
+                  <button class="b-action" onclick="event.stopPropagation(); Engine.tracks = Engine.tracks.filter(x=>x.id!==${t.id}); UI.render();">✕</button>
                 </div>
               </div>
             </div>
-            <div class="wave-view"><canvas id="cv-${t.id}"></canvas></div>
+            <div class="wave-viewport">
+              <div class="track-cursor" id="cursor-${t.id}"></div>
+              <canvas id="cv-${t.id}"></canvas>
+            </div>
           `;
           area.appendChild(div);
-          this.wave(t);
+          this.drawWave(t);
         });
       },
 
-      handleTrackInteraction(track, event) {
-          if(Engine.tool === 'eraser') {
-              this.del(track.id);
-          } else {
-              Engine.select(track.id);
-          }
+      knobDrag(e, id) {
+        e.stopPropagation();
+        const startY = e.clientY; const t = Engine.tracks.find(x => x.id === id); const sp = t.pan;
+        const move = (m) => { let d = (startY - m.clientY) / 100; t.pan = Math.max(-1, Math.min(1, sp+d)); UI.render(); };
+        const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+        window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
       },
 
-      knob(e, id) {
-          e.stopPropagation();
-          const startY = e.clientY; const t = Engine.tracks.find(x => x.id === id); const startP = t.pan;
-          const move = (mv) => {
-              const d = (startY - mv.clientY) / 100; let n = Math.max(-1, Math.min(1, startP + d));
-              t.pan = n; document.getElementById(`knob-${id}`).style.transform = `rotate(${n*135}deg)`;
-          };
-          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-          window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-      },
-
-      wave(t) {
+      drawWave(t) {
         setTimeout(() => {
-          const cv = document.getElementById(`cv-${t.id}`); if(!cv || !t.buffer) return;
+          const cv = document.getElementById(`cv-${t.id}`); if(!cv) return;
           const ctx = cv.getContext('2d'); const w = cv.width = cv.offsetWidth; const h = cv.height = cv.offsetHeight;
+          if(!t.buffer) { ctx.clearRect(0,0,w,h); ctx.strokeStyle="#2d2d3d"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); return; }
           const data = t.buffer.getChannelData(0); const step = Math.ceil(data.length / w); const amp = h / 2;
           ctx.clearRect(0,0,w,h);
           const g = ctx.createLinearGradient(0,0,0,h);
-          g.addColorStop(0, t.muted ? '#444' : '#ff0055'); g.addColorStop(1, t.muted ? '#222' : '#8800ff');
+          g.addColorStop(0, t.muted ? '#475569' : '#ff0055'); g.addColorStop(1, t.muted ? '#1e293b' : '#8800ff');
           ctx.fillStyle = g;
           for(let i=0; i<w; i++){
             let min=1, max=-1; for(let j=0; j<step; j++){ const d=data[(i*step)+j]; if(d<min)min=d; if(d>max)max=d;}
-            ctx.fillRect(i, (1+min)*amp, 1, Math.max(1, (max-min)*amp));
+            ctx.fillRect(i, (1+min)*amp, 1, Math.max(1.5, (max-min)*amp));
           }
         }, 30);
       },
 
       updateInspector() {
         const t = Engine.tracks.find(x => x.id === Engine.selId); if(!t) return;
-        document.getElementById('sel-track-name').innerText = t.name;
-        document.getElementById('insp-vol').value = t.volume;
-        document.getElementById('insp-fx').value = t.fx;
-        document.getElementById('eq-low').value = t.eq.vals.low;
-        document.getElementById('eq-mid').value = t.eq.vals.mid;
-        document.getElementById('eq-high').value = t.eq.vals.high;
-        
-        const fxC = document.getElementById('fx-params'); fxC.innerHTML = '';
-        if (t.fx === 'compressor') {
-            fxC.innerHTML = `<div class="fx-param-row"><label>Threshold: ${t.fxParams.compressor.threshold}dB</label><input type="range" min="-60" max="0" value="${t.fxParams.compressor.threshold}" oninput="Engine.updateFXParam('compressor', 'threshold', this.value); UI.updateInspector()"></div><div class="fx-param-row"><label>Ratio: ${t.fxParams.compressor.ratio}:1</label><input type="range" min="1" max="20" value="${t.fxParams.compressor.ratio}" oninput="Engine.updateFXParam('compressor', 'ratio', this.value); UI.updateInspector()"></div>`;
-        } else if (t.fx === 'distortion') {
-            fxC.innerHTML = `<div class="fx-param-row"><label>Drive: ${t.fxParams.distortion.amount}</label><input type="range" min="0" max="400" value="${t.fxParams.distortion.amount}" oninput="Engine.updateFXParam('distortion', 'amount', this.value); UI.updateInspector()"></div>`;
-        } else if (t.fx === 'delay') {
-            fxC.innerHTML = `<div class="fx-param-row"><label>Tempo: ${t.fxParams.delay.time}s</label><input type="range" min="0.01" max="1.5" step="0.01" value="${t.fxParams.delay.time}" oninput="Engine.updateFXParam('delay', 'time', this.value); UI.updateInspector()"></div>`;
-        }
-        document.querySelectorAll('.track').forEach((el, i) => { if(Engine.tracks[i]) el.classList.toggle('selected', Engine.tracks[i].id === t.id); });
+        document.getElementById('ins-track-label').innerText = t.name;
+        document.getElementById('ins-vol').value = t.volume;
+        document.getElementById('ins-fx').value = t.fx;
+        document.getElementById('eq-l').value = t.eq.vals.low;
+        document.getElementById('eq-m').value = t.eq.vals.mid;
+        document.getElementById('eq-h').value = t.eq.vals.high;
+        const fxp = document.getElementById('fx-params'); fxp.innerHTML = '';
+        if(t.fx !== 'none') fxp.innerHTML = `<label style="font-size:8px; font-weight:800; color:var(--accent);">WET MIX INTENSITY</label><input type="range" min="0" max="1" step="0.01" value="${t.fxParams.intensity}" oninput="Engine.tracks.find(x=>x.id===${t.id}).fxParams.intensity=this.value">`;
       },
 
-      arm(id, b) { Engine.tracks.find(x=>x.id===id).armed = !Engine.tracks.find(x=>x.id===id).armed; b.classList.toggle('rec-active'); },
-      mute(id, b) { Engine.tracks.find(x=>x.id===id).muted = !Engine.tracks.find(x=>x.id===id).muted; this.render(); },
-      del(id) { Engine.tracks = Engine.tracks.filter(x=>x.id!==id); this.render(); },
-      updateTransport() { document.getElementById('btnPlay').classList.toggle('active', Engine.isPlaying); },
-      loading(s) { document.getElementById('overlay').style.display = s ? 'flex' : 'none'; },
-
-      cRaf: null,
       startCursor() {
-          const cur = document.getElementById('playback-cursor'); cur.style.display = 'block';
-          const loop = () => {
-              if(!Engine.isPlaying) return;
-              const elap = Engine.ctx.currentTime - Engine.startTime;
-              const prog = Math.min(1, elap / Engine.maxDur);
-              cur.style.left = (prog * 100) + '%';
-              const m = Math.floor(elap / 60).toString().padStart(2, '0');
-              const s = Math.floor(elap % 60).toString().padStart(2, '0');
-              const ms = Math.floor((elap % 1) * 100).toString().padStart(2, '0');
-              document.getElementById('lcd').innerText = `${m}:${s}:${ms}`;
-              if(prog < 1) this.cRaf = requestAnimationFrame(loop); else Engine.stop();
-          };
-          this.cRaf = requestAnimationFrame(loop);
+        const loop = () => {
+          if(!Engine.isPlaying) return;
+          const elap = Engine.ctx.currentTime - Engine.startTime;
+          const prog = Math.min(1, elap / Engine.maxDur);
+          Engine.tracks.forEach(t => { const line = document.getElementById(`cursor-${t.id}`); if(line) { line.style.display = 'block'; line.style.left = (prog * 100) + '%'; } });
+          const m = Math.floor(elap / 60).toString().padStart(2, '0');
+          const s = Math.floor(elap % 60).toString().padStart(2, '0');
+          const ms = Math.floor((elap % 1) * 100).toString().padStart(2, '0');
+          document.getElementById('timer').innerText = `${m}:${s}:${ms}`;
+          if(Engine.metroOn && elap >= Engine.nextClick){
+            const o = Engine.ctx.createOscillator(); const g = Engine.ctx.createGain();
+            o.frequency.value = 1000; g.gain.setValueAtTime(0.08, Engine.ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, Engine.ctx.currentTime + 0.05);
+            o.connect(g); g.connect(Engine.masterGain); o.start(); o.stop(Engine.ctx.currentTime+0.05);
+            Engine.nextClick += (60/Engine.bpm);
+          }
+          if(prog < 1) this.cRaf = requestAnimationFrame(loop); else Engine.stop();
+        };
+        this.cRaf = requestAnimationFrame(loop);
       },
-      stopCursor() { cancelAnimationFrame(this.cRaf); }
+      stopCursor() { cancelAnimationFrame(this.cRaf); Engine.tracks.forEach(t => { const l = document.getElementById(`cursor-${t.id}`); if(l) l.style.display = 'none'; }); }
     };
 
-    // --- DRAG & DROP LOGIC ---
-    const arrangement = document.getElementById('arrangement');
-    arrangement.addEventListener('dragover', (e) => { e.preventDefault(); arrangement.classList.add('drag-active'); });
-    arrangement.addEventListener('dragleave', () => arrangement.classList.remove('drag-active'));
-    arrangement.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        arrangement.classList.remove('drag-active');
-        const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) {
-            await Engine.init();
-            UI.loading(true);
-            for (const f of files) {
-                try {
-                    const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer());
-                    Engine.addTrack(buf, f.name);
-                } catch(err) { UI.toast("Erro no arquivo: " + f.name); }
-            }
-            UI.loading(false);
-            UI.toast(files.length + " Faixas adicionadas.");
-        }
-    });
-
-    // --- BINDINGS ---
-    document.getElementById('btnAddTrack').onclick = () => { Engine.init(); Engine.addTrack(); };
-    document.getElementById('btnPlay').onclick = () => Engine.isPlaying ? Engine.stop() : Engine.play();
-    document.getElementById('btnStop').onclick = () => Engine.stop();
-    document.getElementById('fileInput').onchange = async (e) => {
-      const fs = e.target.files; if(!fs.length) return;
-      await Engine.init(); UI.loading(true);
-      for(const f of fs){
-          try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(e){UI.toast("Erro!");}
+    const container = document.getElementById('arrangement');
+    container.ondragover = e => e.preventDefault();
+    container.ondrop = async e => {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if(files.length){
+        await Engine.init();
+        for(let f of files){ try{ const b = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(b, f.name); }catch(e){} }
       }
-      UI.loading(false);
     };
 
-    // INÍCIO AUTOMÁTICO
-    window.onload = () => {
-        setTimeout(async () => {
-            await Engine.init();
-            Engine.addTrack(null, "Lead Vocal Track");
-            UI.toast("Canneli Editor Iniciado");
-        }, 500);
-    };
+    window.onload = () => { Engine.init().then(() => { Engine.addTrack(null, "Faixa 1"); UI.render(); }); };
   </script>
 </body>
 </html>
