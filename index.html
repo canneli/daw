@@ -7,7 +7,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 
   <style>
@@ -15,11 +15,14 @@
       --primary: #ff0055;
       --secondary: #8800ff;
       --accent: #00f2ff;
-      --bg-deep: #08000a;
+      --bg-deep: #0a0a14; /* Slate profundo, mais suave que preto absoluto */
+      --bg-surface: #12121f;
       --glass: rgba(255, 255, 255, 0.05);
       --glass-border: rgba(255, 255, 255, 0.12);
-      --text: #ffffff;
-      --glow: 0 0 20px rgba(255, 0, 85, 0.4);
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --glow-pink: 0 0 20px rgba(255, 0, 85, 0.4);
+      --glow-cyan: 0 0 15px rgba(0, 242, 255, 0.4);
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -35,86 +38,89 @@
 
     .bg-anim {
       position: fixed; inset: 0; z-index: -1;
-      background: radial-gradient(circle at 15% 15%, #2a0000 0%, transparent 45%),
-                  radial-gradient(circle at 85% 85%, #1a0033 0%, transparent 45%);
+      background: radial-gradient(circle at 15% 15%, #2a0020 0%, transparent 45%),
+                  radial-gradient(circle at 85% 85%, #0a0a25 0%, transparent 45%);
     }
 
     /* TOP NAV */
     .top-nav {
-      height: 38px; background: rgba(0,0,0,0.8);
+      height: 38px; background: rgba(0,0,0,0.6);
       display: flex; align-items: center; padding: 0 20px;
-      border-bottom: 1px solid var(--border); font-size: 11px;
+      border-bottom: 1px solid var(--glass-border); font-size: 11px;
       font-weight: 700; gap: 5px; z-index: 1000;
     }
-    .logo { font-weight: 900; letter-spacing: 1px; color: #fff; margin-right: 25px; text-transform: uppercase; cursor: default; }
-    .logo span { color: var(--primary); font-size: 9px; margin-left: 4px; text-shadow: var(--glow); }
+    .logo { font-weight: 800; letter-spacing: 1.5px; color: #fff; margin-right: 25px; text-transform: uppercase; cursor: default; }
+    .logo span { color: var(--primary); font-size: 9px; margin-left: 4px; text-shadow: var(--glow-pink); }
     
     .menu-wrap { position: relative; height: 100%; display: flex; align-items: center; }
-    .menu-item { color: #aaa; padding: 0 12px; cursor: pointer; height: 100%; display: flex; align-items: center; text-transform: uppercase; transition: 0.2s; }
+    .menu-item { color: #aaa; padding: 0 12px; cursor: pointer; height: 100%; display: flex; align-items: center; text-transform: uppercase; transition: 0.2s; font-size: 10px; }
     .menu-item:hover { color: #fff; background: var(--glass); }
 
     .dropdown {
-        position: absolute; top: 100%; left: 0; background: #12001a; border: 1px solid var(--border);
-        min-width: 180px; display: none; flex-direction: column; padding: 8px 0;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px);
+        position: absolute; top: 100%; left: 0; background: #151525; border: 1px solid var(--glass-border);
+        min-width: 190px; display: none; flex-direction: column; padding: 8px 0;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(25px);
+        border-radius: 0 0 8px 8px;
     }
     .menu-wrap:hover .dropdown { display: flex; }
-    .drop-btn { padding: 10px 18px; font-size: 11px; font-weight: 600; color: #bbb; cursor: pointer; }
+    .drop-btn { padding: 10px 18px; font-size: 11px; font-weight: 600; color: #bbb; cursor: pointer; transition: 0.2s; }
     .drop-btn:hover { background: var(--primary); color: #fff; }
 
     /* HEADER */
     .app-header {
-      height: 75px; background: rgba(15, 5, 25, 0.85); backdrop-filter: blur(25px);
+      height: 75px; background: rgba(20, 20, 35, 0.8); backdrop-filter: blur(25px);
       border-bottom: 1px solid var(--glass-border);
       display: flex; align-items: center; padding: 0 25px;
       justify-content: space-between; z-index: 900;
     }
 
-    .tools-box { display: flex; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; gap: 5px; border: 1px solid var(--glass-border); }
+    .tools-box { display: flex; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 12px; gap: 5px; border: 1px solid var(--glass-border); }
     .tool-btn {
-      width: 40px; height: 40px; border-radius: 8px; border: none;
+      width: 38px; height: 38px; border-radius: 8px; border: none;
       background: transparent; color: #888; cursor: pointer;
       display: flex; align-items: center; justify-content: center; transition: 0.2s;
     }
     .tool-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
-    .tool-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow); }
-    .tool-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .tool-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow-pink); }
+    .tool-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-    .transport { display: flex; align-items: center; gap: 15px; }
+    .transport { display: flex; align-items: center; gap: 18px; }
     .lcd {
-      background: #000; border: 2px solid rgba(255, 0, 85, 0.3);
-      padding: 8px 22px; border-radius: 12px; display: flex; align-items: center; gap: 18px;
+      background: #000; border: 1.5px solid rgba(255, 0, 85, 0.3);
+      padding: 8px 22px; border-radius: 12px; display: flex; align-items: center; gap: 20px;
       box-shadow: inset 0 2px 10px rgba(0,0,0,1);
     }
-    #timer { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 20px; min-width: 125px; text-align: center; text-shadow: 0 0 10px var(--primary); }
+    #timer { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 20px; min-width: 125px; text-align: center; text-shadow: 0 0 10px var(--primary); letter-spacing: 1px; }
 
     .metro-box { display: flex; align-items: center; gap: 10px; border-left: 1px solid #333; padding-left: 15px; }
     .m-btn {
       background: transparent; border: 1px solid #444; color: #555;
-      width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+      width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
     }
-    .m-btn.active { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(0,242,255,0.3); }
+    .m-btn.active { color: var(--accent); border-color: var(--accent); box-shadow: var(--glow-cyan); }
     .bpm-field { width: 45px; background: transparent; border: none; color: var(--accent); font-family: 'Orbitron', sans-serif; font-size: 15px; text-align: center; }
 
-    .play-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: #fff; color: #000; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-    .play-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow); }
+    .play-btn { width: 48px; height: 48px; border-radius: 50%; border: none; background: #fff; color: #000; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .play-btn:hover { transform: scale(1.05); }
+    .play-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow-pink); }
 
     /* WORKSPACE */
     .app-main { flex: 1; display: flex; overflow: hidden; }
 
     #inspector {
-        width: 290px; background: rgba(10, 5, 20, 0.6); backdrop-filter: blur(40px);
+        width: 290px; background: rgba(15, 15, 25, 0.6); backdrop-filter: blur(40px);
         border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
         padding: 25px; gap: 20px; overflow-y: auto;
     }
-    .card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 18px; }
-    .card-title { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,0,85,0.1); padding-bottom: 6px; }
+    .card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 18px; padding: 20px; }
+    .card-title { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,0,85,0.1); padding-bottom: 8px; }
 
-    #arrangement-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: rgba(0,0,0,0.2); }
+    /* TIMELINE */
+    #arrangement-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: rgba(0,0,0,0.25); }
     
     #ruler {
-        height: 35px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--glass-border);
-        position: relative; cursor: pointer; z-index: 100;
+        height: 35px; background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--glass-border);
+        position: relative; cursor: crosshair; z-index: 100;
     }
     #playhead {
         position: absolute; top: 0; left: 0; width: 2px; height: 100vh;
@@ -124,40 +130,42 @@
 
     #tracks-area { flex: 1; overflow-y: auto; position: relative; }
 
-    .track { height: 150px; display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); transition: 0.2s; position: relative; }
-    .track.selected { background: rgba(255, 0, 85, 0.05); border-left: 6px solid var(--primary); }
+    /* TRACK */
+    .track { height: 145px; display: flex; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.01); transition: 0.2s; position: relative; }
+    .track.selected { background: rgba(255, 255, 255, 0.04); border-left: 6px solid var(--primary); }
     
-    .track-head { width: 260px; background: rgba(0,0,0,0.6); border-right: 1px solid var(--border); padding: 18px; display: flex; flex-direction: column; justify-content: space-between; z-index: 50; }
-    .track-name { background: transparent; border: none; color: #fff; font-weight: 700; font-size: 16px; outline: none; width: 100%; letter-spacing: 0.5px; }
+    .track-head { width: 240px; background: rgba(0,0,0,0.5); border-right: 1px solid var(--glass-border); padding: 15px; display: flex; flex-direction: column; justify-content: space-between; z-index: 50; }
+    .track-name { background: transparent; border: none; color: #fff; font-weight: 700; font-size: 15px; outline: none; width: 100%; letter-spacing: 0.5px; }
 
-    .mixer-mini { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
-    .pan-rodinha { width: 38px; height: 38px; background: #0f111a; border-radius: 50%; border: 2px solid var(--glass-border); position: relative; cursor: ns-resize; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s; }
+    .mixer-mini { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+    .pan-rodinha { width: 34px; height: 34px; background: #151520; border-radius: 50%; border: 2px solid var(--glass-border); position: relative; cursor: ns-resize; box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: 0.2s; }
     .pan-rodinha:hover { border-color: var(--primary); }
-    .pan-rodinha::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 9px; background: var(--primary); border-radius: 1px; transform-origin: center 14px; }
+    .pan-rodinha::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 8px; background: var(--primary); border-radius: 1px; transform-origin: center 14px; }
 
     .track-btns { display: flex; gap: 8px; }
-    .b-sq { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--glass-border); background: var(--glass); color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-    .b-sq:hover { background: rgba(255,255,255,0.1); }
+    .b-sq { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--glass-border); background: var(--glass); color: #fff; font-size: 10px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .b-sq:hover { background: rgba(255,255,255,0.1); color: #fff; }
     .b-sq.m-active { background: #f59e0b; color: #000; border-color: #f59e0b; }
-    .b-sq.rec-active { color: var(--primary); border-color: var(--primary); text-shadow: var(--glow); animation: pulseRec 1.5s infinite; }
-    .b-sq.fx-active { color: var(--accent); border-color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+    .b-sq.rec-active { color: var(--primary); border-color: var(--primary); text-shadow: var(--glow-pink); animation: pulseRec 1.5s infinite; }
+    .b-sq.fx-active { color: var(--accent); border-color: var(--accent); text-shadow: var(--glow-cyan); }
 
     @keyframes pulseRec { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    .wave-view { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.25); cursor: text; }
+    .wave-view { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.15); cursor: text; }
     canvas { width: 100%; height: 100%; display: block; }
 
+    /* FADERS */
     .eq-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .f-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .f-cell label { font-size: 8px; font-weight: 800; color: #666; }
-    .f-v { -webkit-appearance: slider-vertical; width: 10px; height: 110px; background: #222; border-radius: 5px; }
+    .f-cell label { font-size: 8px; font-weight: 800; color: #64748b; }
+    .f-v { -webkit-appearance: slider-vertical; width: 10px; height: 110px; background: #262635; border-radius: 5px; }
 
-    input[type=range] { -webkit-appearance: none; background: #222; height: 4px; border-radius: 2px; width: 100%; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2px solid #000; box-shadow: 0 0 10px var(--primary); }
+    input[type=range] { -webkit-appearance: none; background: #262635; height: 4px; border-radius: 2px; width: 100%; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2.5px solid #08090f; box-shadow: 0 0 10px var(--primary); }
 
-    #toast { position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 12px; display: none; z-index: 2000; animation: slideIn 0.3s ease; }
+    #toast { position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px; display: none; z-index: 2000; animation: slideIn 0.3s ease; box-shadow: var(--glow-pink); }
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--primary); font-weight: 900; letter-spacing: 10px; font-size: 24px; }
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--primary); font-weight: 900; letter-spacing: 10px; font-size: 24px; }
   </style>
 </head>
 <body>
@@ -171,14 +179,14 @@
     <div class="menu-wrap">
         <div class="menu-item">Arquivo</div>
         <div class="dropdown">
-            <div class="drop-btn" onclick="UI.toast('Novo Projeto')">Novo Projeto</div>
+            <div class="drop-btn" onclick="location.reload()">Novo Projeto</div>
             <div class="drop-btn" onclick="document.getElementById('file-in').click()">Importar Áudio...</div>
-            <div class="drop-btn" onclick="UI.toast('Exportando...')">Exportar Mixdown</div>
+            <div class="drop-btn" onclick="UI.toast('Exportando Master HD...')">Exportar Mixdown</div>
         </div>
     </div>
     <div class="menu-wrap"><div class="menu-item">Editar</div></div>
     <div class="menu-wrap"><div class="menu-item" onclick="UI.toggleInsp()">Exibir</div></div>
-    <div style="margin-left: auto; color: var(--primary); font-weight: 800; font-size: 10px; letter-spacing: 1.5px;">ELITE DELUXE v13.0</div>
+    <div style="margin-left: auto; color: var(--primary); font-weight: 800; font-size: 10px; letter-spacing: 1px;">DELUXE MASTER v14.0</div>
   </nav>
 
   <!-- HEADER -->
@@ -196,7 +204,7 @@
     </div>
 
     <div class="transport">
-      <button class="tool-btn" onclick="Engine.stop()" style="font-size: 12px;">■</button>
+      <button class="tool-btn" onclick="Engine.stop()" style="font-size: 14px;">■</button>
       <button class="play-btn" id="p-btn" onclick="Engine.play()">▶</button>
       <button class="tool-btn" id="r-master" style="color: var(--primary);" onclick="Engine.recAction()">●</button>
       
@@ -218,14 +226,14 @@
   <div class="app-main">
     <aside id="inspector">
       <div class="card">
-        <span class="card-title">Mixer Strip</span>
+        <span class="card-title">Canal Mixer</span>
         <p id="ins-track-label" style="font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 12px 0;">Faixa 1</p>
-        <label style="font-size: 10px; font-weight: 800; color: #666;">GAIN INPUT</label>
+        <label style="font-size: 9px; font-weight: 800; color: #64748b;">FADER VOLUME</label>
         <input type="range" min="0" max="1.5" step="0.01" value="1" id="ins-vol" oninput="Engine.updateTrackParam('volume', this.value)">
       </div>
 
       <div class="card">
-        <span class="card-title">Equalização</span>
+        <span class="card-title">Equalização Studio</span>
         <div class="eq-row">
           <div class="f-cell"><input type="range" class="f-v" id="eq-l" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('low', this.value)"><label>LOW</label></div>
           <div class="f-cell"><input type="range" class="f-v" id="eq-m" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('mid', this.value)"><label>MID</label></div>
@@ -234,7 +242,7 @@
       </div>
 
       <div class="card">
-        <span class="card-title">Plugins Rack</span>
+        <span class="card-title">Rack de Plugins</span>
         <select id="ins-fx" style="width:100%; padding:14px; background:#000; color:#fff; border:1px solid var(--glass-border); border-radius:10px; font-size:12px; font-weight:800;" onchange="Engine.updateTrackParam('fx', this.value)">
           <option value="none">Slot Vazio</option>
           <option value="studio">Studio Hall</option>
@@ -246,7 +254,7 @@
         <div id="fx-params" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;"></div>
       </div>
 
-      <button class="b-sq" style="width:100%; height:60px; margin-top:auto; background: rgba(255,0,85,0.1); border-color: var(--primary); font-weight: 900; font-size: 13px; letter-spacing: 1px;" onclick="Engine.addTrack()">+ NOVA PISTA</button>
+      <button class="b-sq" style="width:100%; height:60px; margin-top:auto; background: rgba(255,0,85,0.1); border-color: var(--primary); font-weight: 800; font-size: 13px; letter-spacing: 1px;" onclick="Engine.addTrack()">+ NOVA PISTA</button>
     </aside>
 
     <div id="arrangement-wrap">
@@ -257,8 +265,8 @@
     </div>
   </div>
 
-  <div id="overlay">PROCESSANDO...</div>
-  <div id="toast">Pronto</div>
+  <div id="overlay">PROCESSANDO SINAL...</div>
+  <div id="toast">Ação Executada</div>
   <input type="file" id="file-in" hidden accept="audio/*" multiple>
 
   <script>
@@ -280,10 +288,7 @@
       addTrack(buffer = null, name = null) {
         const id = Date.now() + Math.random();
         const fname = name || ("Faixa " + (this.tracks.length + 1));
-        const l = this.ctx ? this.ctx.createBiquadFilter() : null; if(l) l.type = 'lowshelf';
-        const m = this.ctx ? this.ctx.createBiquadFilter() : null; if(m) { m.type = 'peaking'; m.frequency.value = 1000; }
-        const h = this.ctx ? this.ctx.createBiquadFilter() : null; if(h) h.type = 'highshelf';
-
+        
         const track = {
           id, name: fname, buffer, volume: 1.0, pan: 0, muted: false, armed: false, fx: 'none',
           fxIntensity: 0.5, eqVals: {low:0, mid:0, high:0}, nodes: null,
@@ -311,7 +316,6 @@
         if(type === 'low' || type === 'mid' || type === 'high') t.eqVals[type] = parseFloat(val);
         if(type === 'intensity') t.fxIntensity = parseFloat(val);
 
-        // ATUALIZAÇÃO EM TEMPO REAL
         if (t.nodes) {
             if(type === 'volume') t.nodes.gain.gain.setTargetAtTime(t.muted ? 0 : t.volume, this.ctx.currentTime, 0.05);
             if(type === 'pan') t.nodes.panner.pan.setTargetAtTime(t.pan, this.ctx.currentTime, 0.05);
@@ -319,7 +323,6 @@
             if(type === 'mid') t.nodes.eqM.gain.setTargetAtTime(t.eqVals.mid, this.ctx.currentTime, 0.05);
             if(type === 'high') t.nodes.eqH.gain.setTargetAtTime(t.eqVals.high, this.ctx.currentTime, 0.05);
         }
-
         UI.render();
         UI.updateInspector();
       },
@@ -351,6 +354,7 @@
       stop() {
         this.tracks.forEach(t => { if(t.nodes) { try{t.nodes.source.stop();}catch(e){} t.nodes = null; } });
         this.isPlaying = false; UI.updateTransport(false); UI.stopCursor();
+        this.stopRec();
       },
 
       async recAction() {
@@ -367,9 +371,46 @@
             armed.buffer = buf; armed.armed = false; UI.render(); this.updateMax();
           };
           this.recorder.start(); document.getElementById('r-master').classList.add('active');
-        } catch(e) { alert("Erro de microfone."); }
+        } catch(e) { alert("Microfone não disponível."); }
       },
-      stopRec() { if(this.recorder && this.recorder.state === 'recording') { this.recorder.stop(); document.getElementById('r-master').classList.remove('active'); } }
+      stopRec() { if(this.recorder && this.recorder.state === 'recording') { this.recorder.stop(); document.getElementById('r-master').classList.remove('active'); } },
+
+      normalize(id) {
+          const t = this.tracks.find(x => x.id === id); if(!t || !t.buffer) return;
+          UI.loading(true); setTimeout(async () => {
+            const b = t.buffer;
+            for(let c=0; c<b.numberOfChannels; c++) {
+                const d = b.getChannelData(c);
+                let p = 0; for(let i=0; i<d.length; i++) if(Math.abs(d[i])>p) p=Math.abs(d[i]);
+                if(p>0) { const m=1/p; for(let i=0; i<d.length; i++) d[i]*=m; }
+            }
+            UI.render(); UI.loading(false);
+          }, 500);
+      },
+
+      cutSelectedRegion(id) {
+          const t = this.tracks.find(x => x.id === id);
+          if(!t || !t.buffer || t.selStart === t.selEnd) return;
+          UI.loading(true);
+          const oldBuf = t.buffer;
+          const startFrame = t.selStart * oldBuf.length;
+          const endFrame = t.selEnd * oldBuf.length;
+          const newLength = oldBuf.length - (endFrame - startFrame);
+          
+          if(newLength <= 0) { t.buffer = null; } 
+          else {
+              const newBuf = this.ctx.createBuffer(oldBuf.numberOfChannels, newLength, oldBuf.sampleRate);
+              for(let c=0; c<oldBuf.numberOfChannels; c++) {
+                  const oldData = oldBuf.getChannelData(c);
+                  const newData = newBuf.getChannelData(c);
+                  newData.set(oldData.subarray(0, startFrame));
+                  newData.set(oldData.subarray(endFrame), startFrame);
+              }
+              t.buffer = newBuf;
+          }
+          t.selStart = 0; t.selEnd = 0;
+          this.updateMax(); UI.render(); UI.loading(false);
+      }
     };
 
     const UI = {
@@ -395,7 +436,7 @@
                   <button class="b-sq ${t.armed?'rec-active':''}" onclick="event.stopPropagation(); Engine.tracks.forEach(x=>x.armed=false); t.armed=true; UI.render();">●</button>
                   <button class="b-sq ${t.muted?'m-active':''}" onclick="event.stopPropagation(); t.muted=!t.muted; UI.render();">M</button>
                   <button class="b-sq ${t.fx!=='none'?'fx-active':''}" onclick="event.stopPropagation(); Engine.selId = ${t.id}; UI.updateInspector();">FX</button>
-                  <button class="b-sq" onclick="event.stopPropagation(); Engine.tracks = Engine.tracks.filter(x=>x.id!==${t.id}); UI.render();">✕</button>
+                  <button class="b-sq" onclick="event.stopPropagation(); if(Engine.tracks.length > 1) { Engine.tracks = Engine.tracks.filter(x=>x.id!==${t.id}); UI.render(); }">✕</button>
                 </div>
               </div>
             </div>
@@ -415,21 +456,17 @@
           const startX = (e.clientX - rect.left) / rect.width;
           
           if(Engine.tool === 'scissors') {
-              if (t.selStart !== t.selEnd) {
-                Engine.cutSelectedRegion(id);
-                return;
-              }
+              if (t.selStart !== t.selEnd) { Engine.cutSelectedRegion(id); return; }
           }
           if(Engine.tool === 'eraser') {
               Engine.tracks = Engine.tracks.filter(x => x.id !== id);
-              UI.render();
-              return;
+              UI.render(); return;
           }
 
           const move = (mv) => {
               const currentX = (mv.clientX - rect.left) / rect.width;
-              t.selStart = Math.min(startX, currentX);
-              t.selEnd = Math.max(startX, currentX);
+              t.selStart = Math.max(0, Math.min(startX, currentX));
+              t.selEnd = Math.max(0, Math.min(1, Math.max(startX, currentX)));
               UI.drawWave(t);
           };
           const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
@@ -471,10 +508,10 @@
         const cv = document.getElementById(`cv-${t.id}`); if(!cv) return;
         const ctx = cv.getContext('2d'); const w = cv.width = cv.offsetWidth; const h = cv.height = cv.offsetHeight;
         ctx.clearRect(0,0,w,h);
-        if(!t.buffer) { ctx.strokeStyle="#333"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); return; }
+        if(!t.buffer) { ctx.strokeStyle="#333"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); return; }
         const data = t.buffer.getChannelData(0); const step = Math.ceil(data.length / w); const amp = h / 2;
         const g = ctx.createLinearGradient(0,0,0,h);
-        g.addColorStop(0, t.muted ? '#444' : '#ff0055'); g.addColorStop(1, t.muted ? '#222' : '#8800ff');
+        g.addColorStop(0, t.muted ? '#475569' : '#ff0055'); g.addColorStop(1, t.muted ? '#1e293b' : '#8800ff');
         ctx.fillStyle = g;
         for(let i=0; i<w; i++){
           let min=1, max=-1; for(let j=0; j<step; j++){ const d=data[(i*step)+j]; if(d<min)min=d; if(d>max)max=d;}
@@ -483,7 +520,7 @@
         if(t.selStart !== t.selEnd) {
             ctx.fillStyle = "rgba(0, 242, 255, 0.2)";
             ctx.fillRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
-            ctx.strokeStyle = var(--accent); ctx.strokeRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
+            ctx.strokeStyle = "#00f2ff"; ctx.strokeRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
         }
       },
 
@@ -516,7 +553,7 @@
     };
 
     document.getElementById('file-in').onchange = async e => {
-      const files = e.target.files; if(files.length){ await Engine.init(); for(let f of files){ try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(err) { UI.toast('Erro ao carregar'); } } }
+      const files = e.target.files; if(files.length){ await Engine.init(); for(let f of files){ try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(err) { UI.toast('Erro de ficheiro'); } } }
     };
 
     window.onload = () => { Engine.init().then(() => { Engine.addTrack(null, "Faixa 1"); UI.render(); }); };
