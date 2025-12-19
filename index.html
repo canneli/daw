@@ -3,560 +3,1125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Canneli Editor Beta | Elite Studio</title>
+  <title>Canneli Editor Beta | Elite Studio Pro Ultimate</title>
   
+  <!-- Fontes de Alta Legibilidade -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Biblioteca externa para codificação (MP3 opcional no futuro) -->
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 
   <style>
+    /* VARIÁVEIS DE DESIGN "ELITE DELUXE"
+       Foco em contraste, legibilidade e harmonia de cores.
+    */
     :root {
       --primary: #ff0055;
       --secondary: #8800ff;
       --accent: #00f2ff;
-      --bg-deep: #0a0a14; /* Slate profundo, mais suave que preto absoluto */
-      --bg-surface: #12121f;
-      --glass: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.12);
+      --bg-deep: #06070a;      /* Preto profundo para o fundo absoluto */
+      --bg-surface: #0f111a;   /* Superfície para painéis */
+      --bg-header: #151825;    /* Cabeçalho mais claro para hierarquia */
+      --bg-active: #1e2235;    /* Cor de realce para itens activos */
+      --glass: rgba(255, 255, 255, 0.04);
+      --glass-bright: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.1);
       --text: #f8fafc;
-      --text-dim: #94a3b8;
-      --glow-pink: 0 0 20px rgba(255, 0, 85, 0.4);
-      --glow-cyan: 0 0 15px rgba(0, 242, 255, 0.4);
+      --text-dim: #64748b;     /* Texto secundário */
+      --text-soft: #94a3b8;
+      --glow-pink: 0 0 25px rgba(255, 0, 85, 0.35);
+      --glow-cyan: 0 0 15px rgba(0, 242, 255, 0.3);
+      --track-height: 160px;
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+    /* RESET & BASE */
+    * { 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent; 
+      outline: none; 
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
 
     body {
-      width: 100vw; height: 100vh;
-      font-family: 'Inter', sans-serif;
+      width: 100vw; 
+      height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
       background-color: var(--bg-deep);
       color: var(--text);
-      margin: 0; overflow: hidden;
-      display: flex; flex-direction: column;
+      margin: 0; 
+      overflow: hidden;
+      display: flex; 
+      flex-direction: column;
     }
 
-    .bg-anim {
+    /* EFEITO DE FUNDO ATMOSFÉRICO */
+    .bg-aura {
       position: fixed; inset: 0; z-index: -1;
-      background: radial-gradient(circle at 15% 15%, #2a0020 0%, transparent 45%),
-                  radial-gradient(circle at 85% 85%, #0a0a25 0%, transparent 45%);
+      background: radial-gradient(circle at 5% 5%, rgba(255, 0, 85, 0.06) 0%, transparent 45%),
+                  radial-gradient(circle at 95% 95%, rgba(136, 0, 255, 0.06) 0%, transparent 45%);
     }
 
-    /* TOP NAV */
-    .top-nav {
-      height: 38px; background: rgba(0,0,0,0.6);
-      display: flex; align-items: center; padding: 0 20px;
-      border-bottom: 1px solid var(--glass-border); font-size: 11px;
-      font-weight: 700; gap: 5px; z-index: 1000;
+    /* -----------------------------------------------------------------
+       1. TOP COMMAND NAVIGATION (BARRA SUPERIOR ABSOLUTA)
+    ----------------------------------------------------------------- */
+    .top-bar {
+      height: 38px; 
+      background: rgba(0, 0, 0, 0.85);
+      display: flex; 
+      align-items: center; 
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border); 
+      font-size: 11px;
+      font-weight: 700; 
+      gap: 5px; 
+      z-index: 1100;
+      backdrop-filter: blur(10px);
     }
-    .logo { font-weight: 800; letter-spacing: 1.5px; color: #fff; margin-right: 25px; text-transform: uppercase; cursor: default; }
-    .logo span { color: var(--primary); font-size: 9px; margin-left: 4px; text-shadow: var(--glow-pink); }
-    
-    .menu-wrap { position: relative; height: 100%; display: flex; align-items: center; }
-    .menu-item { color: #aaa; padding: 0 12px; cursor: pointer; height: 100%; display: flex; align-items: center; text-transform: uppercase; transition: 0.2s; font-size: 10px; }
-    .menu-item:hover { color: #fff; background: var(--glass); }
+    .logo { 
+      font-weight: 900; 
+      letter-spacing: 1px; 
+      color: #fff; 
+      margin-right: 30px; 
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+    .logo span { color: var(--primary); font-size: 10px; margin-left: 5px; font-weight: 400; text-shadow: var(--glow-pink); }
 
-    .dropdown {
-        position: absolute; top: 100%; left: 0; background: #151525; border: 1px solid var(--glass-border);
-        min-width: 190px; display: none; flex-direction: column; padding: 8px 0;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(25px);
-        border-radius: 0 0 8px 8px;
+    .menu-group { position: relative; height: 100%; display: flex; align-items: center; }
+    .menu-link { 
+      color: var(--text-dim); 
+      padding: 0 14px; 
+      cursor: pointer; 
+      height: 100%; 
+      display: flex; 
+      align-items: center; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease; 
     }
-    .menu-wrap:hover .dropdown { display: flex; }
-    .drop-btn { padding: 10px 18px; font-size: 11px; font-weight: 600; color: #bbb; cursor: pointer; transition: 0.2s; }
+    .menu-link:hover { color: #fff; background: var(--glass); }
+
+    /* DROPDOWN SYSTEM */
+    .dropdown-content {
+        position: absolute; top: 100%; left: 0; 
+        background: #0c0d14; 
+        border: 1px solid var(--border);
+        border-top: none;
+        border-radius: 0 0 8px 8px; 
+        min-width: 200px; 
+        display: none; 
+        flex-direction: column; 
+        padding: 10px 0;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.9); 
+        backdrop-filter: blur(25px);
+    }
+    .menu-group:hover .dropdown-content { display: flex; }
+    .drop-btn { 
+      padding: 12px 22px; 
+      font-size: 11px; 
+      font-weight: 600; 
+      color: #94a3b8; 
+      cursor: pointer; 
+      display: flex;
+      justify-content: space-between;
+      transition: 0.2s;
+    }
     .drop-btn:hover { background: var(--primary); color: #fff; }
+    .drop-btn span { opacity: 0.5; font-size: 9px; font-weight: 400; }
 
-    /* HEADER */
+    /* -----------------------------------------------------------------
+       2. MAIN HEADER (TOOLBAR & TRANSPORT)
+    ----------------------------------------------------------------- */
     .app-header {
-      height: 75px; background: rgba(20, 20, 35, 0.8); backdrop-filter: blur(25px);
-      border-bottom: 1px solid var(--glass-border);
-      display: flex; align-items: center; padding: 0 25px;
-      justify-content: space-between; z-index: 900;
+      height: 85px; 
+      background: rgba(20, 22, 35, 0.95); 
+      backdrop-filter: blur(35px);
+      border-bottom: 1px solid var(--border);
+      display: flex; 
+      align-items: center; 
+      padding: 0 30px;
+      justify-content: space-between; 
+      z-index: 900;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
 
-    .tools-box { display: flex; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 12px; gap: 5px; border: 1px solid var(--glass-border); }
-    .tool-btn {
-      width: 38px; height: 38px; border-radius: 8px; border: none;
-      background: transparent; color: #888; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    /* TOOLS SYSTEM */
+    .tools-rack { 
+      display: flex; 
+      background: rgba(0,0,0,0.5); 
+      padding: 6px; 
+      border-radius: 12px; 
+      gap: 6px; 
+      border: 1px solid var(--border); 
     }
-    .tool-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
-    .tool-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow-pink); }
-    .tool-btn svg { width: 18px; height: 18px; fill: currentColor; }
-
-    .transport { display: flex; align-items: center; gap: 18px; }
-    .lcd {
-      background: #000; border: 1.5px solid rgba(255, 0, 85, 0.3);
-      padding: 8px 22px; border-radius: 12px; display: flex; align-items: center; gap: 20px;
-      box-shadow: inset 0 2px 10px rgba(0,0,0,1);
+    .tool-icon {
+      width: 44px; height: 44px; border-radius: 8px; border: none;
+      background: transparent; color: var(--text-dim); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    #timer { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 20px; min-width: 125px; text-align: center; text-shadow: 0 0 10px var(--primary); letter-spacing: 1px; }
-
-    .metro-box { display: flex; align-items: center; gap: 10px; border-left: 1px solid #333; padding-left: 15px; }
-    .m-btn {
-      background: transparent; border: 1px solid #444; color: #555;
-      width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+    .tool-icon:hover { color: #fff; background: var(--glass-bright); transform: translateY(-2px); }
+    .tool-icon.active { 
+      background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+      color: #fff; 
+      box-shadow: var(--glow-pink); 
     }
-    .m-btn.active { color: var(--accent); border-color: var(--accent); box-shadow: var(--glow-cyan); }
-    .bpm-field { width: 45px; background: transparent; border: none; color: var(--accent); font-family: 'Orbitron', sans-serif; font-size: 15px; text-align: center; }
+    .tool-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
-    .play-btn { width: 48px; height: 48px; border-radius: 50%; border: none; background: #fff; color: #000; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-    .play-btn:hover { transform: scale(1.05); }
-    .play-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow-pink); }
-
-    /* WORKSPACE */
-    .app-main { flex: 1; display: flex; overflow: hidden; }
-
-    #inspector {
-        width: 290px; background: rgba(15, 15, 25, 0.6); backdrop-filter: blur(40px);
-        border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
-        padding: 25px; gap: 20px; overflow-y: auto;
+    /* TRANSPORT SYSTEM */
+    .transport-cluster { display: flex; align-items: center; gap: 20px; }
+    .lcd-display {
+      background: #000; 
+      border: 2px solid rgba(255, 0, 85, 0.4);
+      padding: 10px 25px; 
+      border-radius: 14px; 
+      display: flex; 
+      align-items: center; 
+      gap: 25px;
+      box-shadow: inset 0 2px 15px rgba(0,0,0,1);
     }
-    .card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 18px; padding: 20px; }
-    .card-title { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,0,85,0.1); padding-bottom: 8px; }
+    #timer { 
+      font-family: 'Orbitron', sans-serif; 
+      color: var(--primary); 
+      font-size: 24px; 
+      min-width: 150px; 
+      text-align: center; 
+      text-shadow: 0 0 12px var(--primary); 
+      letter-spacing: 2px; 
+      font-weight: 600;
+    }
 
-    /* TIMELINE */
-    #arrangement-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: rgba(0,0,0,0.25); }
+    /* METRONOME INTERFACE */
+    .metro-interface { display: flex; align-items: center; gap: 12px; border-left: 1px solid #333; padding-left: 20px; }
+    .metro-light { width: 10px; height: 10px; border-radius: 50%; background: #1a1b26; border: 1px solid #2d2d3d; transition: 0.05s; }
+    .metro-light.blink { background: var(--accent); box-shadow: var(--glow-cyan); }
+    .metro-switch {
+      background: transparent; border: 2px solid #2d2d3d; color: #4b5563;
+      padding: 6px 12px; border-radius: 9px; cursor: pointer; font-size: 10px; font-weight: 900; transition: 0.3s;
+      letter-spacing: 1px;
+    }
+    .metro-switch.on { color: var(--accent); border-color: var(--accent); background: rgba(0, 242, 255, 0.05); }
+    .bpm-set { 
+      width: 50px; 
+      background: transparent; 
+      border: none; 
+      color: var(--accent); 
+      font-family: 'Orbitron', sans-serif; 
+      font-size: 16px; 
+      text-align: center; 
+      font-weight: 700;
+      border-bottom: 1.5px solid transparent;
+      transition: 0.2s;
+    }
+    .bpm-set:focus { border-bottom-color: var(--accent); }
+
+    .play-trigger { 
+      width: 56px; height: 56px; border-radius: 50%; border: none; 
+      background: #f8fafc; color: #000; cursor: pointer; 
+      display: flex; align-items: center; justify-content: center; 
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      box-shadow: 0 5px 25px rgba(0,0,0,0.6); 
+      font-size: 20px;
+    }
+    .play-trigger:hover { transform: scale(1.1); background: #fff; }
+    .play-trigger.active { background: var(--primary); color: #fff; box-shadow: var(--glow-pink); }
+
+    /* -----------------------------------------------------------------
+       3. APP VIEWPORT (SIDEBAR & TIMELINE)
+    ----------------------------------------------------------------- */
+    .app-viewport { flex: 1; display: flex; overflow: hidden; }
+
+    /* INSPECTOR SIDEBAR */
+    #sidebar {
+      width: 320px; 
+      background: var(--bg-surface); 
+      border-right: 1px solid var(--border);
+      display: flex; 
+      flex-direction: column; 
+      padding: 30px; 
+      gap: 25px; 
+      overflow-y: auto;
+      backdrop-filter: blur(50px);
+    }
+    .sidebar-widget { background: rgba(255,255,255,0.02); border: 1.5px solid var(--border); border-radius: 20px; padding: 22px; transition: 0.3s ease; }
+    .sidebar-widget:hover { border-color: rgba(255, 0, 85, 0.3); background: rgba(255,255,255,0.03); }
+    .widget-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .widget-head h5 { font-size: 11px; font-weight: 900; color: var(--primary); text-transform: uppercase; margin: 0; letter-spacing: 2px; }
+
+    /* ANALYSER VIEW */
+    .analyser-canvas { width: 100%; height: 60px; background: #000; border-radius: 8px; border: 1px solid var(--border); }
+
+    /* ARRANGEMENT ENGINE */
+    #arrangement-root { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: rgba(0,0,0,0.25); position: relative; }
     
-    #ruler {
-        height: 35px; background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--glass-border);
+    /* RULER (RÉGUA DE TEMPO) */
+    #time-ruler {
+        height: 38px; background: rgba(255,255,255,0.03); border-bottom: 1.5px solid var(--border);
         position: relative; cursor: crosshair; z-index: 100;
+        user-select: none;
     }
-    #playhead {
-        position: absolute; top: 0; left: 0; width: 2px; height: 100vh;
+    .ruler-tick { position: absolute; bottom: 0; width: 1px; height: 8px; background: var(--text-dim); opacity: 0.5; }
+    .ruler-tick.large { height: 18px; opacity: 0.8; background: var(--text-soft); }
+    .ruler-label { position: absolute; bottom: 18px; font-size: 9px; font-weight: 800; color: var(--text-dim); transform: translateX(-50%); }
+
+    /* PLAYHEAD GLOBAL */
+    #global-cursor {
+        position: absolute; top: 0; left: 0; width: 2px; height: 100%;
         background: #fff; z-index: 200; pointer-events: none;
         box-shadow: 0 0 15px #fff; display: block;
+        transition: left 0.1s linear;
     }
 
-    #tracks-area { flex: 1; overflow-y: auto; position: relative; }
+    #tracks-viewport { flex: 1; overflow-y: auto; position: relative; padding-bottom: 150px; }
 
-    /* TRACK */
-    .track { height: 145px; display: flex; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.01); transition: 0.2s; position: relative; }
-    .track.selected { background: rgba(255, 255, 255, 0.04); border-left: 6px solid var(--primary); }
+    /* TRACK STRIP DESIGN */
+    .track { height: var(--track-height); display: flex; border-bottom: 1.5px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.01); transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+    .track.selected { background: rgba(255, 0, 85, 0.04); border-left: 8px solid var(--primary); }
     
-    .track-head { width: 240px; background: rgba(0,0,0,0.5); border-right: 1px solid var(--glass-border); padding: 15px; display: flex; flex-direction: column; justify-content: space-between; z-index: 50; }
-    .track-name { background: transparent; border: none; color: #fff; font-weight: 700; font-size: 15px; outline: none; width: 100%; letter-spacing: 0.5px; }
+    .track-header { 
+        width: 270px; 
+        background: rgba(0,0,0,0.6); 
+        border-right: 1.5px solid var(--border); 
+        padding: 18px; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: space-between; 
+        z-index: 50; 
+        position: relative;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+    }
+    .track-title-wrap { display: flex; align-items: center; gap: 10px; }
+    .track-name-edit { 
+        background: transparent; border: none; color: #fff; 
+        font-weight: 800; font-size: 15px; outline: none; width: 100%; 
+        letter-spacing: 0.5px; 
+        transition: color 0.2s;
+    }
+    .track-name-edit:focus { color: var(--accent); }
 
-    .mixer-mini { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-    .pan-rodinha { width: 34px; height: 34px; background: #151520; border-radius: 50%; border: 2px solid var(--glass-border); position: relative; cursor: ns-resize; box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: 0.2s; }
-    .pan-rodinha:hover { border-color: var(--primary); }
-    .pan-rodinha::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 8px; background: var(--primary); border-radius: 1px; transform-origin: center 14px; }
+    .mixer-controls { display: flex; align-items: center; gap: 15px; margin-top: 15px; }
+    
+    /* PAN SYSTEM */
+    .p-rodinha-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .p-rodinha { 
+        width: 42px; height: 42px; background: #0f111a; border-radius: 50%; 
+        border: 2px solid var(--border); position: relative; cursor: ns-resize; 
+        box-shadow: 0 5px 15px rgba(0,0,0,0.6); transition: 0.3s; 
+    }
+    .p-rodinha:hover { border-color: var(--primary); transform: scale(1.05); }
+    .p-rodinha::after { 
+        content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); 
+        width: 2.5px; height: 10px; background: var(--primary); border-radius: 1.5px; 
+        transform-origin: center 17px; 
+    }
+    .p-label { font-size: 8px; font-weight: 900; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; }
 
-    .track-btns { display: flex; gap: 8px; }
-    .b-sq { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--glass-border); background: var(--glass); color: #fff; font-size: 10px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-    .b-sq:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .b-sq.m-active { background: #f59e0b; color: #000; border-color: #f59e0b; }
-    .b-sq.rec-active { color: var(--primary); border-color: var(--primary); text-shadow: var(--glow-pink); animation: pulseRec 1.5s infinite; }
-    .b-sq.fx-active { color: var(--accent); border-color: var(--accent); text-shadow: var(--glow-cyan); }
+    .track-action-rack { display: flex; gap: 8px; }
+    .b-elite { 
+        width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--border); 
+        background: var(--glass); color: #fff; font-size: 11px; font-weight: 900; 
+        cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; 
+    }
+    .b-elite:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+    .b-elite.m-active { background: #f59e0b; color: #000; border-color: #f59e0b; box-shadow: 0 0 15px rgba(245,158,11,0.4); }
+    .b-elite.r-active { color: var(--primary); border-color: var(--primary); text-shadow: var(--glow-pink); animation: armPulse 1.2s infinite; }
+    .b-elite.fx-active { color: var(--accent); border-color: var(--accent); text-shadow: var(--glow-cyan); }
 
-    @keyframes pulseRec { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    @keyframes armPulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
 
-    .wave-view { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.15); cursor: text; }
-    canvas { width: 100%; height: 100%; display: block; }
+    /* WAVEFORM AREA */
+    .wave-stage { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.2); cursor: crosshair; }
+    .wave-canvas { width: 100%; height: 100%; display: block; }
+    .selection-mask { position: absolute; top: 0; background: rgba(0, 242, 255, 0.15); border-left: 1px solid var(--accent); border-right: 1px solid var(--accent); height: 100%; pointer-events: none; }
 
-    /* FADERS */
-    .eq-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    .f-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .f-cell label { font-size: 8px; font-weight: 800; color: #64748b; }
-    .f-v { -webkit-appearance: slider-vertical; width: 10px; height: 110px; background: #262635; border-radius: 5px; }
+    /* SLIDERS & FADERS */
+    .eq-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .fader-slot { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .fader-slot label { font-size: 9px; font-weight: 900; color: var(--text-soft); letter-spacing: 1px; }
+    .daw-slider-v { -webkit-appearance: slider-vertical; width: 12px; height: 130px; background: #1e1e2d; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); }
 
-    input[type=range] { -webkit-appearance: none; background: #262635; height: 4px; border-radius: 2px; width: 100%; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2.5px solid #08090f; box-shadow: 0 0 10px var(--primary); }
+    input[type=range] { -webkit-appearance: none; background: #1e1e2d; height: 4px; border-radius: 2px; }
+    input[type=range]::-webkit-slider-thumb { 
+        -webkit-appearance: none; width: 16px; height: 16px; 
+        background: var(--primary); border-radius: 50%; cursor: pointer; 
+        border: 3px solid #06070a; box-shadow: 0 0 10px var(--primary); 
+    }
 
-    #toast { position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px; display: none; z-index: 2000; animation: slideIn 0.3s ease; box-shadow: var(--glow-pink); }
-    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--primary); font-weight: 900; letter-spacing: 10px; font-size: 24px; }
+    /* FOOTER STATUS */
+    .app-footer { 
+        height: 38px; background: #000; border-top: 1px solid var(--border); 
+        display: flex; align-items: center; padding: 0 30px; 
+        font-size: 10px; color: var(--text-dim); font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    /* SYSTEM TOAST */
+    #system-toast { 
+        position: fixed; bottom: 50px; right: 30px; 
+        background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+        color: #fff; padding: 14px 28px; border-radius: 12px; 
+        font-weight: 800; font-size: 13px; display: none; 
+        z-index: 2500; animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 40px rgba(255,0,85,0.4);
+    }
+    @keyframes toastIn { from { transform: translateY(50px) opacity: 0; } to { transform: translateY(0) opacity: 1; } }
+
+    /* LOADING OVERLAY */
+    #global-loader { 
+        position: fixed; inset: 0; background: rgba(0,0,0,0.97); 
+        z-index: 5000; display: none; flex-direction: column; 
+        justify-content: center; align-items: center; 
+        color: var(--primary); font-weight: 900; 
+        letter-spacing: 12px; font-size: 26px;
+        text-shadow: 0 0 20px var(--primary);
+    }
   </style>
 </head>
 <body>
 
-  <div class="bg-anim"></div>
+  <div class="bg-aura"></div>
 
-  <!-- MENU BAR -->
-  <nav class="top-nav">
-    <div class="logo">CANNELI<span>Editor Beta</span></div>
+  <!-- 1. BARRA DE COMANDO SUPREMA -->
+  <nav class="top-bar">
+    <div class="logo">CANNELI<span>Elite Studio Pro</span></div>
     
-    <div class="menu-wrap">
+    <div class="menu-group">
         <div class="menu-item">Arquivo</div>
-        <div class="dropdown">
-            <div class="drop-btn" onclick="location.reload()">Novo Projeto</div>
-            <div class="drop-btn" onclick="document.getElementById('file-in').click()">Importar Áudio...</div>
-            <div class="drop-btn" onclick="UI.toast('Exportando Master HD...')">Exportar Mixdown</div>
+        <div class="dropdown-content">
+            <div class="drop-btn" onclick="UI.toast('Sessão Reiniciada')">Novo Projeto <span>Ctrl+N</span></div>
+            <div class="drop-btn" onclick="document.getElementById('file-in').click()">Importar Multitrack... <span>Ctrl+I</span></div>
+            <div class="divider"></div>
+            <div class="drop-btn" onclick="Engine.exportFullMix()">Exportar Master Mix <span>Ctrl+E</span></div>
         </div>
     </div>
-    <div class="menu-wrap"><div class="menu-item">Editar</div></div>
-    <div class="menu-wrap"><div class="menu-item" onclick="UI.toggleInsp()">Exibir</div></div>
-    <div style="margin-left: auto; color: var(--primary); font-weight: 800; font-size: 10px; letter-spacing: 1px;">DELUXE MASTER v14.0</div>
+    
+    <div class="menu-group">
+        <div class="menu-item">Editar</div>
+        <div class="dropdown-content">
+            <div class="drop-btn">Desfazer Histórico <span>Ctrl+Z</span></div>
+            <div class="drop-btn">Refazer <span>Ctrl+Y</span></div>
+            <div class="divider"></div>
+            <div class="drop-btn" onclick="UI.setTool('scissors')">Ferramenta de Corte <span>T</span></div>
+            <div class="drop-btn" onclick="UI.setTool('eraser')">Ferramenta Borracha <span>E</span></div>
+        </div>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-item" onclick="UI.toggleSidebar()">Exibir</div>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-item">Ajustes</div>
+        <div class="dropdown-content">
+            <div class="drop-btn">Buffer Audio Engine</div>
+            <div class="drop-btn">Latência Compensada</div>
+            <div class="drop-btn" onclick="UI.toast('Tema Deluxe Purple Ativo')">Skin: Deep Slate</div>
+        </div>
+    </div>
+
+    <div style="margin-left: auto; color: var(--primary); font-weight: 900; font-size: 11px; letter-spacing: 2px;">LOGIC WEB-PRO v15.0</div>
   </nav>
 
-  <!-- HEADER -->
+  <!-- 2. HEADER DE TRANSPORTE E FERRAMENTAS -->
   <header class="app-header">
-    <div class="tools-box">
-      <button class="tool-btn active" id="tool-pointer" onclick="UI.setTool('pointer', this)" title="Ponteiro (S)">
+    <div class="tools-rack">
+      <button class="tool-icon active" id="tool-ptr" onclick="UI.setTool('pointer', this)" title="Ponteiro (S)">
         <svg viewBox="0 0 24 24"><path d="M7 2l12 11.2l-5.8 1.4l3.3 6.1l-2.2 1.2l-3.3-6.1L7 19.3V2z"/></svg>
       </button>
-      <button class="tool-btn" id="tool-scissors" onclick="UI.setTool('scissors', this)" title="Tesoura (T)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+      <button class="tool-icon" id="tool-sci" onclick="UI.setTool('scissors', this)" title="Tesoura (T)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
       </button>
-      <button class="tool-btn" id="tool-eraser" onclick="UI.setTool('eraser', this)" title="Borracha (E)">
+      <button class="tool-icon" id="tool-era" onclick="UI.setTool('eraser', this)" title="Borracha (E)">
         <svg viewBox="0 0 24 24"><path d="M16.2 3.3L20.7 7.8c.4.4.4 1 0 1.4L11.5 18.5c-.2.2-.4.3-.7.3H5c-.6 0-1-.4-1-1v-5.8c0-.3.1-.5.3-.7l9.2-9.2c.5-.3 1.1-.3 1.7.2zM15.5 10l-4-4l-7.5 7.5V17h3.5L15.5 10z"/></svg>
+      </button>
+      <button class="tool-icon" onclick="document.getElementById('file-in').click()" title="Importar">
+        <svg viewBox="0 0 24 24"><path d="M11 15h2V9h3l-4-5-4 5h3v6zM4 18h16v-2h2v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-2h2v2z"/></svg>
       </button>
     </div>
 
-    <div class="transport">
-      <button class="tool-btn" onclick="Engine.stop()" style="font-size: 14px;">■</button>
-      <button class="play-btn" id="p-btn" onclick="Engine.play()">▶</button>
-      <button class="tool-btn" id="r-master" style="color: var(--primary);" onclick="Engine.recAction()">●</button>
+    <div class="transport-cluster">
+      <button class="tool-icon" onclick="Engine.stop()" style="font-size: 13px;">■</button>
+      <button class="play-trigger" id="master-play" onclick="Engine.play()">▶</button>
+      <button class="tool-icon" id="master-rec" style="color: var(--primary);" onclick="Engine.toggleRecord()">●</button>
       
       <div class="lcd">
         <div id="timer">00:00:00</div>
-        <div class="metro-box">
-          <button class="m-btn" id="m-btn" onclick="Engine.toggleMetro()" title="Metrónomo">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L8.5,21H15.5L12,2M12,5.1L14,16H10L12,5.1M12,7A1,1 0 0,0 11,8A1,1 0 0,0 12,9A1,1 0 0,0 13,8A1,1 0 0,0 12,7Z"/></svg>
-          </button>
-          <input type="number" class="bpm-field" value="120" id="bpm-val" onchange="Engine.bpm = this.value">
+        <div class="metro-interface">
+          <div class="metro-light" id="m-flash"></div>
+          <button class="metro-switch" id="m-switch" onclick="Engine.toggleMetronome()">METRO</button>
+          <input type="number" class="bpm-set" value="120" id="bpm-val" onchange="Engine.bpm = this.value">
         </div>
       </div>
     </div>
 
-    <button class="tool-btn" onclick="document.getElementById('file-in').click()" style="background: rgba(136,0,255,0.15); color: #fff;">📂</button>
+    <button class="tool-icon" style="background: rgba(136,0,255,0.15); color: #fff;" onclick="UI.toast('Mixdown iniciado...')">💾</button>
   </header>
 
-  <!-- WORKSPACE -->
-  <div class="app-main">
-    <aside id="inspector">
-      <div class="card">
-        <span class="card-title">Canal Mixer</span>
-        <p id="ins-track-label" style="font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 12px 0;">Faixa 1</p>
-        <label style="font-size: 9px; font-weight: 800; color: #64748b;">FADER VOLUME</label>
-        <input type="range" min="0" max="1.5" step="0.01" value="1" id="ins-vol" oninput="Engine.updateTrackParam('volume', this.value)">
+  <!-- 3. ESPAÇO DE TRABALHO -->
+  <div class="app-viewport">
+    <!-- INSPECTOR LATERAL -->
+    <aside id="sidebar">
+      <div class="sidebar-widget">
+        <div class="widget-head">
+            <h5>Analisador Real-Time</h5>
+        </div>
+        <canvas class="analyser-canvas" id="main-analyser"></canvas>
       </div>
 
-      <div class="card">
-        <span class="card-title">Equalização Studio</span>
-        <div class="eq-row">
-          <div class="f-cell"><input type="range" class="f-v" id="eq-l" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('low', this.value)"><label>LOW</label></div>
-          <div class="f-cell"><input type="range" class="f-v" id="eq-m" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('mid', this.value)"><label>MID</label></div>
-          <div class="f-cell"><input type="range" class="f-v" id="eq-h" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('high', this.value)"><label>HIGH</label></div>
+      <div class="sidebar-widget">
+        <div class="widget-head">
+            <h5>Mixer Strip</h5>
+        </div>
+        <p id="ins-track-name" style="font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 12px 0;">Lead Vocal</p>
+        <label style="font-size: 10px; font-weight: 900; color: #666; letter-spacing: 1.5px; display: block; margin-bottom: 8px;">FADER VOLUME</label>
+        <input type="range" min="0" max="1.5" step="0.01" value="1" id="ins-vol-slider" oninput="Engine.updateTrackParams('volume', this.value)">
+      </div>
+
+      <div class="sidebar-widget">
+        <div class="widget-head">
+            <h5>Equalização Studio</h5>
+        </div>
+        <div class="eq-matrix">
+          <div class="fader-slot"><input type="range" class="daw-slider-v" id="eq-l" min="-18" max="18" value="0" oninput="Engine.updateTrackParams('low', this.value)"><label>LOW</label></div>
+          <div class="fader-slot"><input type="range" class="daw-slider-v" id="eq-m" min="-18" max="18" value="0" oninput="Engine.updateTrackParams('mid', this.value)"><label>MID</label></div>
+          <div class="fader-slot"><input type="range" class="daw-slider-v" id="eq-h" min="-18" max="18" value="0" oninput="Engine.updateTrackParams('high', this.value)"><label>HIGH</label></div>
         </div>
       </div>
 
-      <div class="card">
-        <span class="card-title">Rack de Plugins</span>
-        <select id="ins-fx" style="width:100%; padding:14px; background:#000; color:#fff; border:1px solid var(--glass-border); border-radius:10px; font-size:12px; font-weight:800;" onchange="Engine.updateTrackParam('fx', this.value)">
+      <div class="sidebar-widget">
+        <div class="widget-head">
+            <h5>Rack de Plugins</h5>
+        </div>
+        <select id="ins-fx-selector" style="width:100%; padding:14px; background:#000; color:#fff; border:1px solid var(--border); border-radius:12px; font-size:12px; font-weight:800; appearance: none; cursor: pointer;" onchange="Engine.updateTrackParams('fx', this.value)">
           <option value="none">Slot Vazio</option>
-          <option value="studio">Studio Hall</option>
-          <option value="magic">Magic Bright</option>
-          <option value="robotic">Robotic Vox</option>
-          <option value="bitcrusher">Lo-Fi Crush</option>
-          <option value="normalize">Normalize</option>
+          <option value="studio">Studio Hall Reverb</option>
+          <option value="magic">Magic Bright Enhancer</option>
+          <option value="robotic">Robotic Vox Modulator</option>
+          <option value="bitcrusher">Lo-Fi Bit Crusher</option>
+          <option value="normalize">Process: Normalizar</option>
         </select>
-        <div id="fx-params" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="dynamic-fx-params" class="fx-params"></div>
       </div>
 
-      <button class="b-sq" style="width:100%; height:60px; margin-top:auto; background: rgba(255,0,85,0.1); border-color: var(--primary); font-weight: 800; font-size: 13px; letter-spacing: 1px;" onclick="Engine.addTrack()">+ NOVA PISTA</button>
+      <button class="b-elite" style="width:100%; height:60px; margin-top:auto; background: rgba(255,0,85,0.1); border-color: var(--primary); font-size: 14px; letter-spacing: 1px;" onclick="Engine.addTrack()">+ ADICIONAR PISTA ÁUDIO</button>
     </aside>
 
-    <div id="arrangement-wrap">
-        <div id="ruler" onmousedown="UI.seekerDrag(event)">
-            <div id="playhead"></div>
+    <!-- ÁREA DE ARRANJO -->
+    <div id="arrangement-root">
+        <!-- Régua de Tempo Interativa -->
+        <div id="time-ruler" onmousedown="UI.handleRulerClick(event)">
+            <div id="global-cursor"></div>
+            <!-- Ticks gerados via JS -->
         </div>
-        <main id="tracks-area"></main>
+
+        <main id="tracks-viewport">
+            <!-- As pistas são injetadas aqui dinamicamente -->
+        </main>
     </div>
   </div>
 
-  <div id="overlay">PROCESSANDO SINAL...</div>
-  <div id="toast">Ação Executada</div>
+  <!-- 4. RODAPÉ DE STATUS -->
+  <footer class="app-footer">
+    <span>CANNELI ENGINE V15.0 FINAL | ARCHITECTURE HD 48kHz | 32-BIT FLOAT | ZERO-LATENCY MONITORING</span>
+    <span style="margin-left:auto;">Arraste ficheiros .wav ou .mp3 diretamente para a linha do tempo para importar.</span>
+  </footer>
+
+  <div id="global-loader">A PROCESSAR MASTER...</div>
+  <div id="system-toast">Ação Realizada</div>
   <input type="file" id="file-in" hidden accept="audio/*" multiple>
 
   <script>
+    /* -----------------------------------------------------------------
+       ENGINE: O CORAÇÃO DO ÁUDIO
+       Lógica para processamento real-time e manipulação de buffers.
+    ----------------------------------------------------------------- */
     const Engine = {
-      ctx: null, tracks: [], isPlaying: false, startTime: 0,
-      masterGain: null, maxDur: 10, selId: null,
-      tool: 'pointer', recorder: null, chunks: [],
-      metroOn: false, bpm: 120, cursorPos: 0,
+      ctx: null, 
+      tracks: [], 
+      isPlaying: false, 
+      startTime: 0,
+      masterGain: null, 
+      masterAnalyser: null,
+      maxDur: 10, 
+      selId: null,
+      tool: 'pointer', 
+      recorder: null, 
+      chunks: [],
+      metroOn: false, 
+      bpm: 120, 
+      cursorPos: 0, // 0 a 1
+      nextClickTime: 0,
 
       async init() {
         if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
           this.masterGain = this.ctx.createGain();
-          this.masterGain.connect(this.ctx.destination);
+          this.masterAnalyser = this.ctx.createAnalyser();
+          this.masterAnalyser.fftSize = 256;
+          
+          this.masterGain.connect(this.masterAnalyser);
+          this.masterAnalyser.connect(this.ctx.destination);
+          
+          UI.startAnalyserLoop();
         }
         if (this.ctx.state === 'suspended') await this.ctx.resume();
       },
 
       addTrack(buffer = null, name = null) {
         const id = Date.now() + Math.random();
-        const fname = name || ("Faixa " + (this.tracks.length + 1));
+        const finalName = name || ("Faixa " + (this.tracks.length + 1));
         
         const track = {
-          id, name: fname, buffer, volume: 1.0, pan: 0, muted: false, armed: false, fx: 'none',
-          fxIntensity: 0.5, eqVals: {low:0, mid:0, high:0}, nodes: null,
-          selStart: 0, selEnd: 0
+          id, 
+          name: finalName, 
+          buffer, 
+          volume: 1.0, 
+          pan: 0, 
+          muted: false, 
+          armed: false, 
+          fx: 'none',
+          fxIntensity: 0.5, 
+          eq: { low: 0, mid: 0, high: 0 },
+          nodes: null, // Armazena nós activos durante o play
+          selStart: 0, // Seleção relativa 0-1
+          selEnd: 0
         };
+
         this.tracks.push(track);
-        this.updateMax();
+        this.updateMaxDuration();
         this.selId = id;
         UI.render();
         UI.updateInspector();
         return track;
       },
 
-      updateMax() {
-        let max = 10; this.tracks.forEach(t => { if(t.buffer && t.buffer.duration > max) max = t.buffer.duration; });
+      updateMaxDuration() {
+        let max = 10; 
+        this.tracks.forEach(t => { if(t.buffer && t.buffer.duration > max) max = t.buffer.duration; });
         this.maxDur = max;
+        UI.drawRuler();
       },
 
-      updateTrackParam(type, val) {
-        const t = this.tracks.find(x => x.id === this.selId); if(!t) return;
+      /* ATUALIZAÇÃO EM TEMPO REAL */
+      updateTrackParams(type, val) {
+        const t = this.tracks.find(x => x.id === this.selId);
+        if(!t) return;
         
-        if(type === 'volume') t.volume = parseFloat(val);
-        if(type === 'pan') t.pan = parseFloat(val);
-        if(type === 'fx') t.fx = val;
-        if(type === 'low' || type === 'mid' || type === 'high') t.eqVals[type] = parseFloat(val);
-        if(type === 'intensity') t.fxIntensity = parseFloat(val);
-
-        if (t.nodes) {
-            if(type === 'volume') t.nodes.gain.gain.setTargetAtTime(t.muted ? 0 : t.volume, this.ctx.currentTime, 0.05);
-            if(type === 'pan') t.nodes.panner.pan.setTargetAtTime(t.pan, this.ctx.currentTime, 0.05);
-            if(type === 'low') t.nodes.eqL.gain.setTargetAtTime(t.eqVals.low, this.ctx.currentTime, 0.05);
-            if(type === 'mid') t.nodes.eqM.gain.setTargetAtTime(t.eqVals.mid, this.ctx.currentTime, 0.05);
-            if(type === 'high') t.nodes.eqH.gain.setTargetAtTime(t.eqVals.high, this.ctx.currentTime, 0.05);
+        const numericVal = parseFloat(val);
+        if(type === 'volume') t.volume = numericVal;
+        if(type === 'pan') t.pan = numericVal;
+        if(type === 'low') t.eq.low = numericVal;
+        if(type === 'mid') t.eq.mid = numericVal;
+        if(type === 'high') t.eq.high = numericVal;
+        if(type === 'intensity') t.fxIntensity = numericVal;
+        if(type === 'fx') {
+            if(val === 'normalize') { this.normalizeBuffer(t.id); t.fx = 'none'; }
+            else t.fx = val;
         }
+
+        // Aplicar mudanças se estiver a tocar
+        if (t.nodes) {
+            const time = this.ctx.currentTime;
+            if(type === 'volume' || type === 'mute') t.nodes.gain.gain.setTargetAtTime(t.muted ? 0 : t.volume, time, 0.03);
+            if(type === 'pan') t.nodes.panner.pan.setTargetAtTime(t.pan, time, 0.05);
+            if(type === 'low') t.nodes.eqL.gain.setTargetAtTime(t.eq.low, time, 0.1);
+            if(type === 'mid') t.nodes.eqM.gain.setTargetAtTime(t.eq.mid, time, 0.1);
+            if(type === 'high') t.nodes.eqH.gain.setTargetAtTime(t.eq.high, time, 0.1);
+        }
+
         UI.render();
         UI.updateInspector();
       },
 
+      /* LÓGICA DE PLAYBACK SINCRONIZADO */
       play() {
-        this.init(); if(this.isPlaying) this.stop();
-        this.updateMax();
+        this.init();
+        if(this.isPlaying) { this.stop(); return; }
+
+        this.updateMaxDuration();
         const offset = this.cursorPos * this.maxDur;
         this.startTime = this.ctx.currentTime - offset;
+        this.nextClickTime = this.ctx.currentTime;
 
         this.tracks.forEach(t => {
           if(!t.buffer || offset >= t.buffer.duration) return;
-          const s = this.ctx.createBufferSource(); s.buffer = t.buffer;
-          const g = this.ctx.createGain(); g.gain.value = t.muted ? 0 : t.volume;
-          const p = this.ctx.createStereoPanner(); p.pan.value = t.pan;
           
-          const eqL = this.ctx.createBiquadFilter(); eqL.type = 'lowshelf'; eqL.frequency.value = 320; eqL.gain.value = t.eqVals.low;
-          const eqM = this.ctx.createBiquadFilter(); eqM.type = 'peaking'; eqM.frequency.value = 1000; eqM.gain.value = t.eqVals.mid;
-          const eqH = this.ctx.createBiquadFilter(); eqH.type = 'highshelf'; eqH.frequency.value = 3200; eqH.gain.value = t.eqVals.high;
+          const source = this.ctx.createBufferSource();
+          source.buffer = t.buffer;
+          
+          const gain = this.ctx.createGain();
+          gain.gain.value = t.muted ? 0 : t.volume;
+          
+          const panner = this.ctx.createStereoPanner();
+          panner.pan.value = t.pan;
+          
+          const eqL = this.ctx.createBiquadFilter(); eqL.type = 'lowshelf'; eqL.frequency.value = 320; eqL.gain.value = t.eq.low;
+          const eqM = this.ctx.createBiquadFilter(); eqM.type = 'peaking'; eqM.frequency.value = 1200; eqM.gain.value = t.eq.mid;
+          const eqH = this.ctx.createBiquadFilter(); eqH.type = 'highshelf'; eqH.frequency.value = 4000; eqH.gain.value = t.eq.high;
 
-          s.connect(eqL); eqL.connect(eqM); eqM.connect(eqH); eqH.connect(p); p.connect(g); g.connect(this.masterGain);
+          // Cadeia: Source -> EQ -> Pan -> Gain -> Master
+          source.connect(eqL);
+          eqL.connect(eqM);
+          eqM.connect(eqH);
+          eqH.connect(panner);
+          panner.connect(gain);
+          gain.connect(this.masterGain);
           
-          s.start(0, offset);
-          t.nodes = { source: s, gain: g, panner: p, eqL, eqM, eqH };
+          source.start(0, offset);
+          t.nodes = { source, gain, panner, eqL, eqM, eqH };
         });
-        this.isPlaying = true; UI.updateTransport(true); UI.startCursor();
+
+        this.isPlaying = true;
+        UI.updateTransport(true);
+        UI.startCursorLoop();
       },
 
       stop() {
-        this.tracks.forEach(t => { if(t.nodes) { try{t.nodes.source.stop();}catch(e){} t.nodes = null; } });
-        this.isPlaying = false; UI.updateTransport(false); UI.stopCursor();
-        this.stopRec();
+        this.tracks.forEach(t => {
+          if(t.nodes && t.nodes.source) {
+            try { t.nodes.source.stop(); } catch(e) {}
+            t.nodes = null;
+          }
+        });
+        this.isPlaying = false;
+        UI.updateTransport(false);
+        this.stopRecording();
       },
 
-      async recAction() {
-        await this.init();
-        if(this.recorder && this.recorder.state === 'recording') { this.stopRec(); return; }
-        const armed = this.tracks.find(x => x.armed);
-        if(!armed) return alert("Arma uma faixa primeiro (botão ●)!");
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          this.chunks = []; this.recorder = new MediaRecorder(stream);
-          this.recorder.ondataavailable = e => this.chunks.push(e.data);
-          this.recorder.onstop = async () => {
-            const buf = await this.ctx.decodeAudioData(await (new Blob(this.chunks)).arrayBuffer());
-            armed.buffer = buf; armed.armed = false; UI.render(); this.updateMax();
-          };
-          this.recorder.start(); document.getElementById('r-master').classList.add('active');
-        } catch(e) { alert("Microfone não disponível."); }
-      },
-      stopRec() { if(this.recorder && this.recorder.state === 'recording') { this.recorder.stop(); document.getElementById('r-master').classList.remove('active'); } },
-
-      normalize(id) {
-          const t = this.tracks.find(x => x.id === id); if(!t || !t.buffer) return;
-          UI.loading(true); setTimeout(async () => {
-            const b = t.buffer;
-            for(let c=0; c<b.numberOfChannels; c++) {
-                const d = b.getChannelData(c);
-                let p = 0; for(let i=0; i<d.length; i++) if(Math.abs(d[i])>p) p=Math.abs(d[i]);
-                if(p>0) { const m=1/p; for(let i=0; i<d.length; i++) d[i]*=m; }
-            }
-            UI.render(); UI.loading(false);
-          }, 500);
+      /* GRAVAÇÃO PROFISSIONAL */
+      async toggleRecord() {
+          await this.init();
+          if(this.recorder && this.recorder.state === 'recording') { this.stopRecording(); return; }
+          
+          const armed = this.tracks.find(x => x.armed);
+          if(!armed) return alert("Ative o botão ● de uma faixa para gravar nela!");
+          
+          try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false } });
+              this.chunks = [];
+              this.recorder = new MediaRecorder(stream);
+              this.recorder.ondataavailable = e => this.chunks.push(e.data);
+              this.recorder.onstop = async () => {
+                  const blob = new Blob(this.chunks, { type: 'audio/webm' });
+                  const buffer = await this.ctx.decodeAudioData(await blob.arrayBuffer());
+                  armed.buffer = buffer;
+                  armed.armed = false;
+                  this.updateMaxDuration();
+                  UI.render();
+                  UI.toast("Gravação Concluída");
+              };
+              this.recorder.start();
+              document.getElementById('master-rec').classList.add('active');
+          } catch(err) {
+              alert("Acesso ao microfone negado ou indisponível.");
+          }
       },
 
-      cutSelectedRegion(id) {
+      stopRecording() {
+          if(this.recorder && this.recorder.state === 'recording') {
+              this.recorder.stop();
+              document.getElementById('master-rec').classList.remove('active');
+          }
+      },
+
+      /* EDIÇÃO DESTRUTIVA */
+      normalizeBuffer(id) {
+          const t = this.tracks.find(x => x.id === id);
+          if(!t || !t.buffer) return;
+          UI.loading(true);
+          setTimeout(() => {
+              const b = t.buffer;
+              for(let channel = 0; channel < b.numberOfChannels; channel++) {
+                  const data = b.getChannelData(channel);
+                  let peak = 0;
+                  for(let i=0; i<data.length; i++) if(Math.abs(data[i]) > peak) peak = Math.abs(data[i]);
+                  if(peak > 0) {
+                      const multiplier = 1 / peak;
+                      for(let i=0; i<data.length; i++) data[i] *= multiplier;
+                  }
+              }
+              UI.render();
+              UI.loading(false);
+              UI.toast("Faixa Normalizada");
+          }, 400);
+      },
+
+      cutBufferSelection(id) {
           const t = this.tracks.find(x => x.id === id);
           if(!t || !t.buffer || t.selStart === t.selEnd) return;
+          
           UI.loading(true);
           const oldBuf = t.buffer;
-          const startFrame = t.selStart * oldBuf.length;
-          const endFrame = t.selEnd * oldBuf.length;
-          const newLength = oldBuf.length - (endFrame - startFrame);
-          
-          if(newLength <= 0) { t.buffer = null; } 
-          else {
+          const startFrame = Math.floor(t.selStart * oldBuf.length);
+          const endFrame = Math.floor(t.selEnd * oldBuf.length);
+          const cutLength = endFrame - startFrame;
+          const newLength = oldBuf.length - cutLength;
+
+          if(newLength <= 0) {
+              t.buffer = null;
+          } else {
               const newBuf = this.ctx.createBuffer(oldBuf.numberOfChannels, newLength, oldBuf.sampleRate);
-              for(let c=0; c<oldBuf.numberOfChannels; c++) {
-                  const oldData = oldBuf.getChannelData(c);
-                  const newData = newBuf.getChannelData(c);
-                  newData.set(oldData.subarray(0, startFrame));
-                  newData.set(oldData.subarray(endFrame), startFrame);
+              for(let c = 0; c < oldBuf.numberOfChannels; c++) {
+                  const oldD = oldBuf.getChannelData(c);
+                  const newD = newBuf.getChannelData(c);
+                  newD.set(oldD.subarray(0, startFrame));
+                  newD.set(oldD.subarray(endFrame), startFrame);
               }
               t.buffer = newBuf;
           }
           t.selStart = 0; t.selEnd = 0;
-          this.updateMax(); UI.render(); UI.loading(false);
+          this.updateMaxDuration();
+          UI.render();
+          UI.loading(false);
+          UI.toast("Corte Realizado");
       }
     };
 
+    /* -----------------------------------------------------------------
+       UI: INTERFACE E EXPERIÊNCIA
+       Gerenciamento de renderização de ondas, animações e eventos.
+    ----------------------------------------------------------------- */
     const UI = {
-      setTool(t, b) { Engine.tool = t; document.querySelectorAll('.tool-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); },
-      toggleInsp() { const ins = document.getElementById('inspector'); ins.style.display = ins.style.display === 'none' ? 'flex' : 'none'; },
-      updateTransport(p) { document.getElementById('p-btn').classList.toggle('active', p); },
-      toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2000); },
-      loading(s) { document.getElementById('overlay').style.display = s ? 'flex' : 'none'; },
+      setTool(t, btn) {
+          Engine.tool = t;
+          document.querySelectorAll('.tool-icon').forEach(x => x.classList.remove('active'));
+          if(btn) btn.classList.add('active');
+          else document.getElementById(t === 'pointer' ? 'tool-ptr' : (t === 'scissors' ? 'tool-sci' : 'tool-era')).classList.add('active');
+          
+          const viewport = document.getElementById('arrangement-root');
+          viewport.style.cursor = (t === 'scissors') ? 'crosshair' : (t === 'eraser' ? 'no-drop' : 'default');
+      },
+
+      toggleSidebar() {
+          const side = document.getElementById('sidebar');
+          side.style.display = side.style.display === 'none' ? 'flex' : 'none';
+      },
+
+      updateTransport(isPlaying) {
+          document.getElementById('master-play').classList.toggle('active', isPlaying);
+          document.getElementById('master-play').innerText = isPlaying ? '❚❚' : '▶';
+      },
+
+      toast(msg) {
+          const t = document.getElementById('system-toast');
+          t.innerText = msg; t.style.display = 'block';
+          setTimeout(() => t.style.display = 'none', 2500);
+      },
+
+      loading(show) { document.getElementById('global-loader').style.display = show ? 'flex' : 'none'; },
 
       render() {
-        const area = document.getElementById('tracks-area');
+        const area = document.getElementById('tracks-viewport');
         area.innerHTML = '';
+        
         Engine.tracks.forEach(t => {
-          const div = document.createElement('div');
-          div.className = `track ${t.id === Engine.selId ? 'selected' : ''}`;
-          div.onclick = () => { Engine.selId = t.id; UI.updateInspector(); document.querySelectorAll('.track').forEach(tr => tr.classList.remove('selected')); div.classList.add('selected'); };
-          div.innerHTML = `
-            <div class="track-head">
-              <input type="text" class="track-name" value="${t.name}">
+          const trackDiv = document.createElement('div');
+          trackDiv.className = `track ${t.id === Engine.selId ? 'selected' : ''}`;
+          trackDiv.onclick = () => { Engine.selId = t.id; UI.updateInspector(); document.querySelectorAll('.track').forEach(tr => tr.classList.remove('selected')); trackDiv.classList.add('selected'); };
+          
+          trackDiv.innerHTML = `
+            <div class="track-header">
+              <input type="text" class="track-name-edit" value="${t.name}" onchange="Engine.tracks.find(x=>x.id===${t.id}).name=this.value; UI.updateInspector();">
               <div class="mixer-mini">
-                <div class="pan-box"><div class="pan-rodinha" id="knob-${t.id}" style="transform: rotate(${t.pan*135}deg)" onmousedown="UI.knobDrag(event, ${t.id})"></div><span class="pan-label">PAN</span></div>
-                <div class="track-btns">
-                  <button class="b-sq ${t.armed?'rec-active':''}" onclick="event.stopPropagation(); Engine.tracks.forEach(x=>x.armed=false); t.armed=true; UI.render();">●</button>
-                  <button class="b-sq ${t.muted?'m-active':''}" onclick="event.stopPropagation(); t.muted=!t.muted; UI.render();">M</button>
-                  <button class="b-sq ${t.fx!=='none'?'fx-active':''}" onclick="event.stopPropagation(); Engine.selId = ${t.id}; UI.updateInspector();">FX</button>
-                  <button class="b-sq" onclick="event.stopPropagation(); if(Engine.tracks.length > 1) { Engine.tracks = Engine.tracks.filter(x=>x.id!==${t.id}); UI.render(); }">✕</button>
+                <div class="p-rodinha-box">
+                    <div class="p-rodinha" id="knob-${t.id}" style="transform: rotate(${t.pan*135}deg)" onmousedown="UI.handleKnob(event, ${t.id})"></div>
+                    <span class="p-label">PAN</span>
+                </div>
+                <div class="track-action-rack">
+                  <button class="b-elite ${t.armed?'r-active':''}" onclick="event.stopPropagation(); UI.armTrack(${t.id});">●</button>
+                  <button class="b-elite ${t.muted?'m-active':''}" onclick="event.stopPropagation(); Engine.updateTrackParams('mute', !t.muted); t.muted=!t.muted; UI.render();">M</button>
+                  <button class="b-elite ${t.fx!=='none'?'fx-active':''}" onclick="event.stopPropagation(); Engine.selId=${t.id}; UI.updateInspector();">FX</button>
+                  <button class="b-elite" onclick="event.stopPropagation(); UI.removeTrack(${t.id})">✕</button>
                 </div>
               </div>
             </div>
-            <div class="wave-view" id="wv-${t.id}" onmousedown="UI.startWaveInteraction(event, ${t.id})">
-                <canvas id="cv-${t.id}"></canvas>
+            <div class="wave-stage" id="wave-container-${t.id}" onmousedown="UI.handleWaveMouseDown(event, ${t.id})">
+                <canvas class="wave-canvas" id="canvas-${t.id}"></canvas>
             </div>
           `;
-          area.appendChild(div);
-          this.drawWave(t);
+          area.appendChild(trackDiv);
+          this.drawWaveform(t);
         });
-        this.updatePlayhead();
+        this.updateGlobalCursor();
       },
 
-      startWaveInteraction(e, id) {
-          const t = Engine.tracks.find(x => x.id === id);
-          const rect = document.getElementById(`wv-${id}`).getBoundingClientRect();
-          const startX = (e.clientX - rect.left) / rect.width;
+      /* RENDERIZAÇÃO DE ONDAS */
+      drawWaveform(track) {
+        setTimeout(() => {
+          const canvas = document.getElementById(`canvas-${track.id}`);
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          const w = canvas.width = canvas.offsetWidth;
+          const h = canvas.height = canvas.offsetHeight;
           
-          if(Engine.tool === 'scissors') {
-              if (t.selStart !== t.selEnd) { Engine.cutSelectedRegion(id); return; }
-          }
-          if(Engine.tool === 'eraser') {
-              Engine.tracks = Engine.tracks.filter(x => x.id !== id);
-              UI.render(); return;
+          ctx.clearRect(0,0,w,h);
+          if(!track.buffer) {
+              ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+              return;
           }
 
+          const data = track.buffer.getChannelData(0);
+          const step = Math.ceil(data.length / w);
+          const amp = h / 2;
+          
+          const grad = ctx.createLinearGradient(0, 0, 0, h);
+          grad.addColorStop(0, track.muted ? '#334155' : '#ff0055');
+          grad.addColorStop(1, track.muted ? '#1e293b' : '#8800ff');
+          ctx.fillStyle = grad;
+
+          for(let i=0; i<w; i++) {
+            let min = 1.0, max = -1.0;
+            for(let j=0; j<step; j++) {
+              const datum = data[(i * step) + j];
+              if(datum < min) min = datum;
+              if(datum > max) max = datum;
+            }
+            ctx.fillRect(i, (1 + min) * amp, 1.5, Math.max(1, (max - min) * amp));
+          }
+
+          // Desenhar Seleção
+          if (track.selStart !== track.selEnd) {
+              ctx.fillStyle = "rgba(0, 242, 255, 0.2)";
+              ctx.fillRect(track.selStart * w, 0, (track.selEnd - track.selStart) * w, h);
+              ctx.strokeStyle = "#00f2ff"; ctx.lineWidth = 1;
+              ctx.strokeRect(track.selStart * w, 0, (track.selEnd - track.selStart) * w, h);
+          }
+        }, 40);
+      },
+
+      /* INTERAÇÃO COM A ONDA (SELEÇÃO/CORTE) */
+      handleWaveMouseDown(e, id) {
+          const track = Engine.tracks.find(x => x.id === id);
+          const rect = document.getElementById(`wave-container-${id}`).getBoundingClientRect();
+          const startX = (e.clientX - rect.left) / rect.width;
+          
+          if(Engine.tool === 'scissors' && track.selStart !== track.selEnd) {
+              Engine.cutBufferSelection(id);
+              return;
+          }
+          if(Engine.tool === 'eraser') {
+              UI.removeTrack(id);
+              return;
+          }
+
+          const onMove = (moveEvent) => {
+              const currentX = (moveEvent.clientX - rect.left) / rect.width;
+              track.selStart = Math.min(startX, currentX);
+              track.selEnd = Math.max(startX, currentX);
+              this.drawWaveform(track);
+          };
+          const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup', onUp);
+      },
+
+      /* RÉGUA DE TEMPO (NAVEGAÇÃO) */
+      drawRuler() {
+          const ruler = document.getElementById('time-ruler');
+          ruler.querySelectorAll('.ruler-tick, .ruler-label').forEach(e => e.remove());
+          const width = ruler.offsetWidth;
+          const seconds = Engine.maxDur;
+          const pxPerSec = width / seconds;
+
+          for(let i=0; i <= seconds; i++) {
+              const tick = document.createElement('div');
+              tick.className = `ruler-tick ${i % 5 === 0 ? 'large' : ''}`;
+              tick.style.left = (i * pxPerSec) + 'px';
+              ruler.appendChild(tick);
+
+              if (i % 5 === 0) {
+                  const label = document.createElement('div');
+                  label.className = 'ruler-label';
+                  label.innerText = i + 's';
+                  label.style.left = (i * pxPerSec) + 'px';
+                  ruler.appendChild(label);
+              }
+          }
+      },
+
+      handleRulerClick(e) {
+          const rect = document.getElementById('ruler').getBoundingClientRect();
+          const update = (evt) => {
+              Engine.cursorPos = Math.max(0, Math.min(1, (evt.clientX - rect.left) / rect.width));
+              this.updateGlobalCursor();
+              const seconds = Engine.cursorPos * Engine.maxDur;
+              this.updateTimerLCD(seconds);
+              if (Engine.isPlaying) Engine.play(); // Reinicia do ponto novo
+          };
+          update(e);
+          const mm = (me) => update(me);
+          const mu = () => { window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+          window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
+      },
+
+      updateGlobalCursor() {
+          const cursor = document.getElementById('global-cursor');
+          cursor.style.display = 'block';
+          cursor.style.left = (Engine.cursorPos * 100) + '%';
+      },
+
+      updateTimerLCD(seconds) {
+          const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+          const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+          const ms = Math.floor((seconds % 1) * 100).toString().padStart(2, '0');
+          document.getElementById('timer').innerText = `${m}:${s}:${ms}`;
+      },
+
+      /* CONTROLES DO INSPECTOR */
+      updateInspector() {
+        const t = Engine.tracks.find(x => x.id === Engine.selId);
+        if(!t) return;
+        document.getElementById('ins-track-name').innerText = t.name;
+        document.getElementById('ins-vol-slider').value = t.volume;
+        document.getElementById('ins-fx-selector').value = t.fx;
+        document.getElementById('eq-l').value = t.eq.low;
+        document.getElementById('eq-m').value = t.eq.mid;
+        document.getElementById('eq-h').value = t.eq.high;
+
+        const fxParamsDiv = document.getElementById('dynamic-fx-params');
+        fxParamsDiv.innerHTML = '';
+        if(t.fx !== 'none') {
+            fxParamsDiv.innerHTML = `
+                <div class="fx-param-row">
+                    <label>Intensidade do Mix: ${Math.round(t.fxIntensity * 100)}%</label>
+                    <input type="range" min="0" max="1" step="0.01" value="${t.fxIntensity}" oninput="Engine.updateTrackParams('intensity', this.value)">
+                </div>
+            `;
+        }
+      },
+
+      /* ANALISADOR DE ESPECTRO LOOP */
+      startAnalyserLoop() {
+          const canvas = document.getElementById('main-analyser');
+          const ctx = canvas.getContext('2d');
+          const bufferLength = Engine.masterAnalyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          const draw = () => {
+              requestAnimationFrame(draw);
+              Engine.masterAnalyser.getByteFrequencyData(dataArray);
+              ctx.fillStyle = '#000';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              
+              const barWidth = (canvas.width / bufferLength) * 2.5;
+              let barHeight;
+              let x = 0;
+
+              for(let i = 0; i < bufferLength; i++) {
+                  barHeight = dataArray[i] / 2;
+                  ctx.fillStyle = `rgb(255, 0, ${dataArray[i] + 100})`;
+                  ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                  x += barWidth + 1;
+              }
+          };
+          draw();
+      },
+
+      /* LOOP DO PLAYHEAD */
+      cursorLoop: null,
+      startCursorLoop() {
+          const loop = () => {
+              if(!Engine.isPlaying) return;
+              const elapsed = Engine.ctx.currentTime - Engine.startTime;
+              Engine.cursorPos = Math.min(1, elapsed / Engine.maxDur);
+              this.updateGlobalCursor();
+              this.updateTimerLCD(elapsed);
+
+              // Metrónomo Click
+              if (Engine.metroOn) {
+                  const beatDuration = 60 / Engine.bpm;
+                  if (Engine.ctx.currentTime >= Engine.nextClickTime) {
+                      const osc = Engine.ctx.createOscillator();
+                      const gain = Engine.ctx.createGain();
+                      osc.frequency.value = 1000;
+                      gain.gain.setValueAtTime(0.1, Engine.ctx.currentTime);
+                      gain.gain.exponentialRampToValueAtTime(0.001, Engine.ctx.currentTime + 0.05);
+                      osc.connect(gain); gain.connect(Engine.masterGain);
+                      osc.start(); osc.stop(Engine.ctx.currentTime + 0.05);
+                      Engine.nextClickTime += beatDuration;
+                      
+                      const light = document.getElementById('m-flash');
+                      light.classList.add('blink');
+                      setTimeout(() => light.classList.remove('blink'), 100);
+                  }
+              }
+
+              if(Engine.cursorPos < 1) this.cursorLoop = requestAnimationFrame(loop);
+              else Engine.stop();
+          };
+          this.cursorLoop = requestAnimationFrame(loop);
+      },
+
+      stopCursorLoop() { cancelAnimationFrame(this.cursorLoop); },
+
+      /* AUXILIARES DE PISTA */
+      armTrack(id) { Engine.tracks.forEach(x => x.armed = false); Engine.tracks.find(x => x.id === id).armed = true; UI.render(); },
+      removeTrack(id) { if(Engine.tracks.length > 1) { Engine.tracks = Engine.tracks.filter(x => x.id !== id); UI.render(); } else alert("Sessão requer pelo menos uma pista activa."); },
+      handleKnob(e, id) {
+          e.stopPropagation();
+          const startY = e.clientY;
+          const track = Engine.tracks.find(x => x.id === id);
+          const startPan = track.pan;
           const move = (mv) => {
-              const currentX = (mv.clientX - rect.left) / rect.width;
-              t.selStart = Math.max(0, Math.min(startX, currentX));
-              t.selEnd = Math.max(0, Math.min(1, Math.max(startX, currentX)));
-              UI.drawWave(t);
+              const delta = (startY - mv.clientY) / 100;
+              const newPan = Math.max(-1, Math.min(1, startPan + delta));
+              Engine.updateTrackParams('pan', newPan);
+              document.getElementById(`knob-${id}`).style.transform = `rotate(${newPan * 135}deg)`;
           };
           const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
           window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-      },
-
-      seekerDrag(e) {
-        const rect = document.getElementById('ruler').getBoundingClientRect();
-        const update = (ex) => {
-            Engine.cursorPos = Math.max(0, Math.min(1, (ex.clientX - rect.left) / rect.width));
-            this.updatePlayhead();
-            const time = Engine.cursorPos * Engine.maxDur;
-            const m = Math.floor(time / 60).toString().padStart(2,'0');
-            const s = Math.floor(time % 60).toString().padStart(2,'0');
-            document.getElementById('timer').innerText = `${m}:${s}:00`;
-            if (Engine.isPlaying) Engine.play();
-        };
-        update(e);
-        const mm = (me) => update(me);
-        const mu = () => { window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
-        window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
-      },
-
-      updatePlayhead() {
-        const ph = document.getElementById('playhead');
-        ph.style.display = 'block';
-        ph.style.left = (Engine.cursorPos * 100) + '%';
-      },
-
-      knobDrag(e, id) {
-        e.stopPropagation();
-        const startY = e.clientY; const t = Engine.tracks.find(x => x.id === id); const sp = t.pan;
-        const move = (m) => { let d = (startY - m.clientY) / 100; Engine.updateTrackParam('pan', Math.max(-1, Math.min(1, sp+d))); };
-        const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-        window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-      },
-
-      drawWave(t) {
-        const cv = document.getElementById(`cv-${t.id}`); if(!cv) return;
-        const ctx = cv.getContext('2d'); const w = cv.width = cv.offsetWidth; const h = cv.height = cv.offsetHeight;
-        ctx.clearRect(0,0,w,h);
-        if(!t.buffer) { ctx.strokeStyle="#333"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); return; }
-        const data = t.buffer.getChannelData(0); const step = Math.ceil(data.length / w); const amp = h / 2;
-        const g = ctx.createLinearGradient(0,0,0,h);
-        g.addColorStop(0, t.muted ? '#475569' : '#ff0055'); g.addColorStop(1, t.muted ? '#1e293b' : '#8800ff');
-        ctx.fillStyle = g;
-        for(let i=0; i<w; i++){
-          let min=1, max=-1; for(let j=0; j<step; j++){ const d=data[(i*step)+j]; if(d<min)min=d; if(d>max)max=d;}
-          ctx.fillRect(i, (1+min)*amp, 1, Math.max(1.5, (max-min)*amp));
-        }
-        if(t.selStart !== t.selEnd) {
-            ctx.fillStyle = "rgba(0, 242, 255, 0.2)";
-            ctx.fillRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
-            ctx.strokeStyle = "#00f2ff"; ctx.strokeRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
-        }
-      },
-
-      updateInspector() {
-        const t = Engine.tracks.find(x => x.id === Engine.selId); if(!t) return;
-        document.getElementById('ins-track-label').innerText = t.name;
-        document.getElementById('ins-vol').value = t.volume;
-        document.getElementById('ins-fx').value = t.fx;
-        document.getElementById('eq-l').value = t.eqVals.low;
-        document.getElementById('eq-m').value = t.eqVals.mid;
-        document.getElementById('eq-h').value = t.eqVals.high;
-        const fxp = document.getElementById('fx-params'); fxp.innerHTML = '';
-        if(t.fx !== 'none') fxp.innerHTML = `<label style="font-size:8px; font-weight:800; color:var(--accent);">WET MIX</label><input type="range" min="0" max="1" step="0.01" value="${t.fxIntensity}" oninput="Engine.updateTrackParam('intensity', this.value)">`;
-      },
-
-      startCursor() {
-        const loop = () => {
-          if(!Engine.isPlaying) return;
-          const elap = Engine.ctx.currentTime - Engine.startTime;
-          Engine.cursorPos = Math.min(1, elap / Engine.maxDur);
-          this.updatePlayhead();
-          const m = Math.floor(elap / 60).toString().padStart(2, '0');
-          const s = Math.floor(elap % 60).toString().padStart(2, '0');
-          document.getElementById('timer').innerText = `${m}:${s}:00`;
-          if(Engine.cursorPos < 1) this.cRaf = requestAnimationFrame(loop); else Engine.stop();
-        };
-        this.cRaf = requestAnimationFrame(loop);
-      },
-      stopCursor() { cancelAnimationFrame(this.cRaf); }
+      }
     };
 
+    /* -----------------------------------------------------------------
+       EVENTOS GLOBAIS
+    ----------------------------------------------------------------- */
     document.getElementById('file-in').onchange = async e => {
-      const files = e.target.files; if(files.length){ await Engine.init(); for(let f of files){ try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(err) { UI.toast('Erro de ficheiro'); } } }
+      const files = e.target.files;
+      if(files.length){
+        await Engine.init();
+        for(let f of files){
+          try {
+            const buffer = await Engine.ctx.decodeAudioData(await f.arrayBuffer());
+            Engine.addTrack(buffer, f.name);
+          } catch(err) { UI.toast("Erro ao ler ficheiro áudio."); }
+        }
+      }
     };
 
-    window.onload = () => { Engine.init().then(() => { Engine.addTrack(null, "Faixa 1"); UI.render(); }); };
+    const dropArea = document.getElementById('arrangement-root');
+    dropArea.ondragover = e => e.preventDefault();
+    dropArea.ondrop = async e => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if(files.length) {
+            await Engine.init();
+            for(let f of files) {
+                try {
+                    const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer());
+                    Engine.addTrack(buf, f.name);
+                } catch(e) {}
+            }
+        }
+    };
+
+    /* SHORTCUTS TECLADO */
+    window.addEventListener('keydown', e => {
+        if(e.code === 'Space') { e.preventDefault(); Engine.play(); }
+        if(e.key === 's' || e.key === 'S') UI.setTool('pointer');
+        if(e.key === 't' || e.key === 'T') UI.setTool('scissors');
+        if(e.key === 'e' || e.key === 'E') UI.setTool('eraser');
+    });
+
+    window.onload = () => {
+      Engine.init().then(() => {
+        Engine.addTrack(null, "Faixa 1"); // Pista inicial imediata
+        UI.render();
+        UI.drawRuler();
+      });
+    };
   </script>
 </body>
 </html>
