@@ -136,7 +136,7 @@
     }
     
     .track:hover { background: rgba(255,255,255,0.04); }
-    .track:hover { border-left-color: var(--primary); } /* Highlight no trilho */
+    .track:hover { border-left-color: var(--primary); } 
 
     .track.active-recording { border-left-color: var(--primary); background: rgba(255,0,85,0.05); }
 
@@ -157,7 +157,7 @@
     .btn-arm.armed { color: var(--primary); text-shadow: 0 0 10px var(--primary); animation: pulseArm 2s infinite; }
     @keyframes pulseArm { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    .track-body { display: flex; align-items: center; padding: 10px; gap: 10px; }
+    .track-body { display: flex; align-items: center; padding: 10px; gap: 10px; position: relative; }
     
     /* Controles da Faixa (Esquerda) */
     .track-controls { display: flex; flex-direction: column; gap: 8px; width: 90px; flex-shrink: 0; }
@@ -169,6 +169,7 @@
     }
     .btn-track-toggle.active { background: var(--secondary); color: #fff; border-color: var(--secondary); }
     .btn-track-toggle.mute.active { background: var(--danger); border-color: var(--danger); }
+    .btn-track-toggle.eq-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
     .vol-slider { width: 100%; height: 3px; -webkit-appearance: none; background: rgba(255,255,255,0.1); outline: none; }
     .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #fff; cursor: pointer; }
@@ -178,8 +179,22 @@
       font-size: 9px; border-radius: 4px; padding: 2px; outline: none;
     }
 
+    /* Painel de EQ */
+    .eq-panel {
+        display: none; /* Hidden by default */
+        flex-direction: row; gap: 8px; padding-top: 5px; border-top: 1px dashed rgba(255,255,255,0.1);
+        justify-content: space-between;
+    }
+    .eq-panel.open { display: flex; }
+    .eq-band { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .eq-band label { font-size: 7px; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; }
+    .eq-slider { 
+        -webkit-appearance: none; width: 100%; height: 2px; background: rgba(255,255,255,0.1); outline: none; 
+    }
+    .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 8px; height: 8px; border-radius: 50%; background: var(--secondary); cursor: pointer; }
+
     /* Waveform (Direita) */
-    .track-wave { flex: 1; height: 60px; background: rgba(0,0,0,0.2); border-radius: 6px; position: relative; overflow: hidden; cursor: text; }
+    .track-wave { flex: 1; height: 60px; background: rgba(0,0,0,0.2); border-radius: 6px; position: relative; overflow: hidden; cursor: crosshair; }
     .track-wave canvas { width: 100%; height: 100%; display: block; }
 
     /* Barra de Transporte (Bottom Fixo) */
@@ -262,7 +277,7 @@
       <div id="clock">00:00</div>
     </header>
 
-    <!-- Timeline Area: Onde as faixas ficam -->
+    <!-- Timeline Area -->
     <div id="timelineArea">
       <div style="text-align:center; padding: 40px; color: var(--text-muted); opacity: 0.5;">
         <p>Toque em <strong>+</strong> para criar uma faixa<br>ou grave para começar.</p>
@@ -303,16 +318,19 @@
   <div id="statusOverlay">Processando...</div>
 
   <script>
-    // --- GERENCIADOR DE ESTADO E AUDIO ---
+    // --- AUDIO ENGINE ---
     const AudioEngine = {
         ctx: null,
-        tracks: [], // Array de objetos Track
+        tracks: [],
         isPlaying: false,
         startTime: 0,
+        pauseTime: 0,
+        cursorPos: 0, // 0 a 1 (percentual da track mais longa)
         masterGain: null,
         analyser: null,
         recorder: null,
         recordingChunks: [],
+        maxDuration: 10, // Duração em segundos (dinâmica)
         
         async init() {
             if (!this.ctx) {
@@ -327,17 +345,34 @@
             if (this.ctx.state === 'suspended') await this.ctx.resume();
         },
 
+        updateMaxDuration() {
+            let max = 0;
+            this.tracks.forEach(t => { if(t.buffer && t.buffer.duration > max) max = t.buffer.duration; });
+            this.maxDuration = max > 0 ? max : 10;
+        },
+
         setMasterVolume(val) {
             if (this.masterGain) this.masterGain.gain.value = val;
         },
 
         addTrack(buffer = null, name = "Faixa de Áudio") {
             const trackId = Date.now() + Math.floor(Math.random()*1000);
+            
+            // Create EQ nodes
+            const eqLow = this.ctx ? this.ctx.createBiquadFilter() : null;
+            if(eqLow) { eqLow.type = 'lowshelf'; eqLow.frequency.value = 320; }
+            
+            const eqMid = this.ctx ? this.ctx.createBiquadFilter() : null;
+            if(eqMid) { eqMid.type = 'peaking'; eqMid.frequency.value = 1000; eqMid.Q.value = 1; }
+            
+            const eqHigh = this.ctx ? this.ctx.createBiquadFilter() : null;
+            if(eqHigh) { eqHigh.type = 'highshelf'; eqHigh.frequency.value = 3200; }
+
             const track = {
                 id: trackId,
                 name: name,
-                buffer: buffer, // AudioBuffer
-                gainNode: this.ctx.createGain(),
+                buffer: buffer,
+                gainNode: this.ctx ? this.ctx.createGain() : null,
                 sourceNode: null,
                 volume: 1.0,
                 muted: false,
@@ -346,7 +381,8 @@
                 armed: false,
                 selStart: 0,
                 selEnd: 0,
-                dom: null
+                dom: null,
+                eq: { low: eqLow, mid: eqMid, high: eqHigh }
             };
             
             track.dom = UI.createTrackElement(track);
@@ -355,7 +391,10 @@
             const emptyMsg = document.querySelector('#timelineArea div[style*="text-align:center"]');
             if(emptyMsg) emptyMsg.style.display = 'none';
 
-            if (buffer) UI.drawWaveform(track);
+            if (buffer) {
+                this.updateMaxDuration();
+                UI.drawWaveform(track);
+            }
 
             this.tracks.push(track);
             return track;
@@ -366,6 +405,7 @@
             if (idx > -1) {
                 this.tracks[idx].dom.remove();
                 this.tracks.splice(idx, 1);
+                this.updateMaxDuration();
             }
         },
 
@@ -380,6 +420,15 @@
             });
         },
 
+        updateEQ(id, band, val) { // val: -20 a 20 (dB)
+            const track = this.tracks.find(t => t.id === id);
+            if(track && track.eq) {
+                if(band === 'low') track.eq.low.gain.value = val;
+                if(band === 'mid') track.eq.mid.gain.value = val;
+                if(band === 'high') track.eq.high.gain.value = val;
+            }
+        },
+
         cutSelection(id) {
             const track = this.tracks.find(t => t.id === id);
             if (!track || !track.buffer) return;
@@ -387,6 +436,7 @@
 
             const rate = track.buffer.sampleRate;
             const channels = track.buffer.numberOfChannels;
+            // Selection is 0-1 relative to TRACK duration
             const startFrame = Math.floor(track.selStart * track.buffer.length);
             const endFrame = Math.floor(track.selEnd * track.buffer.length);
             const cutLen = endFrame - startFrame;
@@ -394,6 +444,7 @@
 
             if (newLen <= 0) {
                 track.buffer = null; 
+                this.updateMaxDuration();
                 UI.drawWaveform(track);
                 return;
             }
@@ -409,6 +460,7 @@
 
             track.buffer = newBuffer;
             track.selStart = 0; track.selEnd = 0; 
+            this.updateMaxDuration();
             UI.drawWaveform(track);
         },
 
@@ -416,15 +468,29 @@
             if (this.isPlaying) this.stop();
             this.init();
             
-            const now = this.ctx.currentTime;
+            const startOffset = this.cursorPos * this.maxDuration;
+            this.startTime = this.ctx.currentTime - startOffset;
+
             this.tracks.forEach(t => {
                 if (!t.buffer) return;
                 
+                // Se o cursor já passou do fim desta track, não toca
+                if (startOffset >= t.buffer.duration) return;
+
                 const source = this.ctx.createBufferSource();
                 source.buffer = t.buffer;
                 
                 let input = source;
                 
+                // EQ Chain
+                if(t.eq) {
+                    input.connect(t.eq.low);
+                    t.eq.low.connect(t.eq.mid);
+                    t.eq.mid.connect(t.eq.high);
+                    input = t.eq.high;
+                }
+
+                // FX Chain
                 if (t.effect !== 'none') {
                     const fxNode = this.createEffect(t.effect);
                     input.connect(fxNode.in);
@@ -435,12 +501,13 @@
                 input.connect(t.gainNode);
                 t.gainNode.connect(this.masterGain);
                 
-                source.start(now);
+                source.start(0, startOffset); // Começa com offset correto
                 t.sourceNode = source;
             });
             
             this.isPlaying = true;
             UI.setPlayState(true);
+            UI.startCursorAnimation();
         },
 
         stop() {
@@ -452,6 +519,7 @@
             });
             this.isPlaying = false;
             UI.setPlayState(false);
+            UI.stopCursorAnimation();
         },
 
         async startRecording() {
@@ -480,7 +548,7 @@
                     } else {
                         this.addTrack(audioBuffer, "Gravação " + (this.tracks.length + 1));
                     }
-                    
+                    this.updateMaxDuration();
                     stream.getTracks().forEach(t => t.stop());
                 };
                 
@@ -500,15 +568,12 @@
 
         async exportMix() {
             if (this.tracks.length === 0) return alert("Nada para exportar!");
-            
             UI.showOverlay("Renderizando Mix...");
+            this.updateMaxDuration();
             
-            let maxDuration = 0;
-            this.tracks.forEach(t => { if(t.buffer && t.buffer.duration > maxDuration) maxDuration = t.buffer.duration; });
-            
-            if (maxDuration === 0) { UI.hideOverlay(); return alert("Faixas vazias."); }
+            if (this.maxDuration === 0) { UI.hideOverlay(); return alert("Faixas vazias."); }
 
-            const offlineCtx = new OfflineAudioContext(2, maxDuration * 44100, 44100);
+            const offlineCtx = new OfflineAudioContext(2, this.maxDuration * 44100, 44100);
             
             this.tracks.forEach(t => {
                 if (!t.buffer || t.muted) return;
@@ -516,17 +581,22 @@
                 const source = offlineCtx.createBufferSource();
                 source.buffer = t.buffer;
                 
+                // Recreate EQ offline
+                const eqLow = offlineCtx.createBiquadFilter(); eqLow.type='lowshelf'; eqLow.frequency.value=320; eqLow.gain.value = t.eq.low.gain.value;
+                const eqMid = offlineCtx.createBiquadFilter(); eqMid.type='peaking'; eqMid.frequency.value=1000; eqMid.gain.value = t.eq.mid.gain.value;
+                const eqHigh = offlineCtx.createBiquadFilter(); eqHigh.type='highshelf'; eqHigh.frequency.value=3200; eqHigh.gain.value = t.eq.high.gain.value;
+
                 const gain = offlineCtx.createGain();
                 gain.gain.value = t.volume;
                 
                 let input = source;
-                // Recriar efeitos no offline context
+                input.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh);
+                input = eqHigh;
+
                 if (t.effect !== 'none') {
-                    // Simulação simplificada para offline, idealmente replicaria createEffect
-                    // Aqui mantemos simples para garantir exportação
+                    // Simplificação offline para demo
                     const d = offlineCtx.createDelay(); 
                     if(t.effect === 'echo') { d.delayTime.value = 0.4; input.connect(d); d.connect(gain); }
-                    // Outros efeitos não implementados offline nesta demo para estabilidade
                 }
 
                 input.connect(gain);
@@ -535,11 +605,8 @@
             });
 
             const renderedBuffer = await offlineCtx.startRendering();
-            
             UI.showOverlay("Codificando MP3...");
-            setTimeout(() => {
-               this.encodeMP3(renderedBuffer); 
-            }, 100);
+            setTimeout(() => { this.encodeMP3(renderedBuffer); }, 100);
         },
 
         encodeMP3(buffer) {
@@ -547,29 +614,21 @@
             const samples = buffer.getChannelData(0); 
             const sampleBlockSize = 1152;
             const mp3Data = [];
-            
             const samplesInt16 = new Int16Array(samples.length);
             for (let i = 0; i < samples.length; i++) {
                 samplesInt16[i] = samples[i] < 0 ? samples[i] * 0x8000 : samples[i] * 0x7FFF;
             }
-            
             for (let i = 0; i < samplesInt16.length; i += sampleBlockSize) {
                 const chunk = samplesInt16.subarray(i, i + sampleBlockSize);
                 const mp3buf = mp3encoder.encodeBuffer(chunk);
                 if (mp3buf.length > 0) mp3Data.push(mp3buf);
             }
-            
             const endBuf = mp3encoder.flush();
             if (endBuf.length > 0) mp3Data.push(endBuf);
-            
             const blob = new Blob(mp3Data, { type: 'audio/mp3' });
             const url = URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `Canneli_Mix_${Date.now()}.mp3`;
-            a.click();
-            
+            a.href = url; a.download = `Canneli_Mix_${Date.now()}.mp3`; a.click();
             UI.hideOverlay();
         },
 
@@ -582,63 +641,29 @@
                 delay.delayTime.value = 0.4;
                 const feedback = this.ctx.createGain();
                 feedback.gain.value = 0.4;
-                input.connect(output); 
-                input.connect(delay);
-                delay.connect(feedback);
-                feedback.connect(delay);
-                delay.connect(output);
+                input.connect(output); input.connect(delay); delay.connect(feedback); feedback.connect(delay); delay.connect(output);
             } else if (type === 'robot') {
-                const osc = this.ctx.createOscillator();
-                osc.frequency.value = 50;
-                osc.start();
-                const mod = this.ctx.createGain();
-                osc.connect(mod.gain);
-                input.connect(mod);
-                mod.connect(output);
+                const osc = this.ctx.createOscillator(); osc.frequency.value = 50; osc.start();
+                const mod = this.ctx.createGain(); osc.connect(mod.gain);
+                input.connect(mod); mod.connect(output);
             } else if (type === 'radio') {
-                const filter = this.ctx.createBiquadFilter();
-                filter.type = "bandpass";
-                filter.frequency.value = 1000;
-                input.connect(filter);
-                filter.connect(output);
+                const filter = this.ctx.createBiquadFilter(); filter.type = "bandpass"; filter.frequency.value = 1000;
+                input.connect(filter); filter.connect(output);
             } else if (type === 'studio') {
-                // Studio: EQ + Reverb (Convolver)
-                const eq = this.ctx.createBiquadFilter(); 
-                eq.type='highshelf'; eq.frequency.value=3000; eq.gain.value=5;
-                
+                const eq = this.ctx.createBiquadFilter(); eq.type='highshelf'; eq.frequency.value=3000; eq.gain.value=5;
                 const conv = this.ctx.createConvolver();
-                // Gerar impulso para reverb
                 const len = this.ctx.sampleRate * 2; 
                 const buf = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
-                for(let i=0;i<2;i++) {
-                    const ch = buf.getChannelData(i);
-                    for(let j=0;j<len;j++) ch[j] = (Math.random()*2-1)*Math.pow(1-j/len,2);
-                }
+                for(let i=0;i<2;i++) { const ch = buf.getChannelData(i); for(let j=0;j<len;j++) ch[j] = (Math.random()*2-1)*Math.pow(1-j/len,2); }
                 conv.buffer = buf;
-                
-                const wet = this.ctx.createGain(); wet.gain.value = 0.4;
-                const dry = this.ctx.createGain(); dry.gain.value = 0.8;
-                
-                input.connect(eq);
-                eq.connect(dry); dry.connect(output); // Dry Path
-                eq.connect(conv); conv.connect(wet); wet.connect(output); // Wet Path
-                
+                const wet = this.ctx.createGain(); wet.gain.value = 0.2;
+                input.connect(eq); eq.connect(output); eq.connect(conv); conv.connect(wet); wet.connect(output);
             } else if (type === 'magic') {
-                // Magic: Compressor + EQ + Delay
-                const comp = this.ctx.createDynamicsCompressor();
-                comp.threshold.value = -20; comp.ratio.value = 4;
-                
-                const eq = this.ctx.createBiquadFilter();
-                eq.type = 'highshelf'; eq.frequency.value = 8000; eq.gain.value = 4;
-                
+                const comp = this.ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 4;
+                const eq = this.ctx.createBiquadFilter(); eq.type = 'highshelf'; eq.frequency.value = 8000; eq.gain.value = 4;
                 const delay = this.ctx.createDelay(); delay.delayTime.value = 0.15;
                 const delayGain = this.ctx.createGain(); delayGain.gain.value = 0.2;
-                
-                input.connect(comp);
-                comp.connect(eq);
-                eq.connect(output); // Main signal
-                eq.connect(delay); delay.connect(delayGain); delayGain.connect(output); // Sparkle
-                
+                input.connect(comp); comp.connect(eq); eq.connect(output); eq.connect(delay); delay.connect(delayGain); delayGain.connect(output);
             } else {
                 input.connect(output);
             }
@@ -651,8 +676,7 @@
             const draw = () => {
                 requestAnimationFrame(draw);
                 this.analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+                let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
                 const avg = sum / dataArray.length;
                 bar.style.width = Math.min(100, avg * 1.5) + '%';
             };
@@ -662,6 +686,8 @@
 
     // --- UI MANAGER ---
     const UI = {
+        rafId: null,
+
         createTrackElement(track) {
             const div = document.createElement('div');
             div.className = 'track';
@@ -672,8 +698,8 @@
                         <span class="track-name" contenteditable="true">${track.name}</span>
                     </div>
                     <div class="track-actions">
-                        <button class="btn-icon-small btn-arm" title="Armar para Gravação" onclick="AudioEngine.toggleArm(${track.id})">●</button>
-                        <button class="btn-icon-small" title="Cortar Seleção" onclick="AudioEngine.cutSelection(${track.id})">✂️</button>
+                        <button class="btn-icon-small btn-arm" title="Armar" onclick="AudioEngine.toggleArm(${track.id})">●</button>
+                        <button class="btn-icon-small" title="Cortar" onclick="AudioEngine.cutSelection(${track.id})">✂️</button>
                         <button class="btn-icon-small danger" onclick="AudioEngine.removeTrack(${track.id})">✕</button>
                     </div>
                 </div>
@@ -682,8 +708,9 @@
                         <div class="track-btn-row">
                             <button class="btn-track-toggle mute" onclick="UI.toggleMute(${track.id}, this)">M</button>
                             <button class="btn-track-toggle" onclick="UI.toggleSolo(${track.id}, this)">S</button>
+                            <button class="btn-track-toggle eq-btn" onclick="UI.toggleEQ(${track.id}, this)">EQ</button>
                         </div>
-                        <input type="range" class="vol-slider" min="0" max="1.5" step="0.1" value="1" 
+                        <input type="range" class="vol-slider" min="0" max="1.5" step="0.1" value="1" title="Volume"
                                oninput="UI.updateVol(${track.id}, this.value)">
                         <select class="fx-select" onchange="UI.updateFx(${track.id}, this.value)">
                             <option value="none">S/ Efeito</option>
@@ -696,47 +723,66 @@
                     </div>
                     <div class="track-wave">
                         <canvas id="cv_${track.id}" width="400" height="60"></canvas>
+                        <!-- Cursor Global Overlay -->
+                        <div id="cursor_${track.id}" style="position:absolute; top:0; left:0; width:1px; height:100%; background:white; display:none; pointer-events:none;"></div>
                     </div>
+                </div>
+                <div class="eq-panel" id="eq_${track.id}">
+                    <div class="eq-band"><label>LOW</label><input type="range" class="eq-slider" min="-20" max="20" value="0" oninput="AudioEngine.updateEQ(${track.id}, 'low', this.value)"></div>
+                    <div class="eq-band"><label>MID</label><input type="range" class="eq-slider" min="-20" max="20" value="0" oninput="AudioEngine.updateEQ(${track.id}, 'mid', this.value)"></div>
+                    <div class="eq-band"><label>HIGH</label><input type="range" class="eq-slider" min="-20" max="20" value="0" oninput="AudioEngine.updateEQ(${track.id}, 'high', this.value)"></div>
                 </div>
             `;
             
             setTimeout(() => {
                 const cv = div.querySelector('canvas');
-                let isSelecting = false;
+                let isDragging = false;
                 let startX = 0;
 
-                const getX = (e) => {
+                const getNormalizedX = (e) => {
                     const rect = cv.getBoundingClientRect();
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     return Math.max(0, Math.min(clientX - rect.left, rect.width)) / rect.width;
                 };
 
-                const startSel = (e) => {
-                    isSelecting = true;
-                    startX = getX(e);
-                    track.selStart = startX;
-                    track.selEnd = startX;
+                const startInteraction = (e) => {
+                    isDragging = true;
+                    startX = getNormalizedX(e);
+                    // Click inicial define cursor, mas se arrastar vira seleção
+                    AudioEngine.cursorPos = startX;
+                    UI.updateAllCursors();
+                    
+                    // Reset selection on click start
+                    track.selStart = 0; track.selEnd = 0;
                     UI.drawWaveform(track);
                 };
 
-                const moveSel = (e) => {
-                    if(!isSelecting) return;
-                    e.preventDefault(); 
-                    const curX = getX(e);
-                    track.selStart = Math.min(startX, curX);
-                    track.selEnd = Math.max(startX, curX);
-                    UI.drawWaveform(track);
+                const moveInteraction = (e) => {
+                    if(!isDragging) return;
+                    e.preventDefault();
+                    const currentX = getNormalizedX(e);
+                    
+                    // Se moveu pouco, considera ajuste de cursor. Se moveu muito, é seleção.
+                    if (Math.abs(currentX - startX) > 0.01) {
+                        track.selStart = Math.min(startX, currentX);
+                        track.selEnd = Math.max(startX, currentX);
+                        UI.drawWaveform(track);
+                    } else {
+                        // Ainda é cursor update
+                        AudioEngine.cursorPos = currentX;
+                        UI.updateAllCursors();
+                    }
                 };
 
-                const endSel = () => { isSelecting = false; };
+                const endInteraction = () => { isDragging = false; };
 
-                cv.addEventListener('mousedown', startSel);
-                window.addEventListener('mousemove', moveSel);
-                window.addEventListener('mouseup', endSel);
+                cv.addEventListener('mousedown', startInteraction);
+                window.addEventListener('mousemove', moveInteraction);
+                window.addEventListener('mouseup', endInteraction);
                 
-                cv.addEventListener('touchstart', startSel, {passive: false});
-                window.addEventListener('touchmove', moveSel, {passive: false});
-                window.addEventListener('touchend', endSel);
+                cv.addEventListener('touchstart', startInteraction, {passive: false});
+                window.addEventListener('touchmove', moveInteraction, {passive: false});
+                window.addEventListener('touchend', endInteraction);
             }, 0);
 
             return div;
@@ -750,7 +796,10 @@
                 if(t.gainNode) t.gainNode.gain.value = t.muted ? 0 : t.volume;
             }
         },
-        toggleSolo(id, btn) {
+        toggleSolo(id, btn) { btn.classList.toggle('active'); },
+        toggleEQ(id, btn) {
+            const panel = document.getElementById(`eq_${id}`);
+            panel.classList.toggle('open');
             btn.classList.toggle('active');
         },
         updateVol(id, val) {
@@ -776,7 +825,6 @@
                 const amp = h / 2;
                 
                 ctx.clearRect(0,0,w,h);
-                
                 ctx.fillStyle = "#ff0055"; 
                 ctx.beginPath();
                 for(let i=0; i < w; i++){
@@ -792,15 +840,41 @@
                 if (track.selEnd > track.selStart) {
                     const sX = track.selStart * w;
                     const eX = track.selEnd * w;
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
                     ctx.fillRect(sX, 0, eX - sX, h);
-                    ctx.strokeStyle = "#fff";
-                    ctx.beginPath();
-                    ctx.moveTo(sX,0); ctx.lineTo(sX,h);
-                    ctx.moveTo(eX,0); ctx.lineTo(eX,h);
-                    ctx.stroke();
+                    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1;
+                    ctx.strokeRect(sX, 0, eX - sX, h);
                 }
             });
+        },
+
+        updateAllCursors() {
+            AudioEngine.tracks.forEach(t => {
+                const cursor = document.getElementById(`cursor_${t.id}`);
+                if(cursor) {
+                    cursor.style.display = 'block';
+                    cursor.style.left = (AudioEngine.cursorPos * 100) + '%';
+                }
+            });
+        },
+
+        startCursorAnimation() {
+            const animate = () => {
+                if(!AudioEngine.isPlaying) return;
+                const elapsed = AudioEngine.ctx.currentTime - AudioEngine.startTime;
+                AudioEngine.cursorPos = Math.min(1, elapsed / AudioEngine.maxDuration);
+                this.updateAllCursors();
+                if(AudioEngine.cursorPos < 1) {
+                    this.rafId = requestAnimationFrame(animate);
+                } else {
+                    AudioEngine.stop();
+                }
+            };
+            this.rafId = requestAnimationFrame(animate);
+        },
+
+        stopCursorAnimation() {
+            cancelAnimationFrame(this.rafId);
         },
 
         setPlayState(playing) {
@@ -809,21 +883,14 @@
         
         setRecordingState(recording) {
             const btn = document.getElementById('btnRecordMaster');
-            if(recording) {
-                btn.classList.add('recording');
-            } else {
-                btn.classList.remove('recording');
-            }
+            if(recording) btn.classList.add('recording'); else btn.classList.remove('recording');
         },
         
         showOverlay(msg) {
             const el = document.getElementById('statusOverlay');
-            el.innerText = msg;
-            el.style.display = 'block';
+            el.innerText = msg; el.style.display = 'block';
         },
-        hideOverlay() {
-            document.getElementById('statusOverlay').style.display = 'none';
-        }
+        hideOverlay() { document.getElementById('statusOverlay').style.display = 'none'; }
     };
 
     // --- BINDINGS ---
@@ -836,9 +903,11 @@
         if(!file) return;
         await AudioEngine.init();
         UI.showOverlay("Carregando...");
-        const buf = await file.arrayBuffer();
-        const audioBuf = await AudioEngine.ctx.decodeAudioData(buf);
-        AudioEngine.addTrack(audioBuf, file.name);
+        try {
+            const buf = await file.arrayBuffer();
+            const audioBuf = await AudioEngine.ctx.decodeAudioData(buf);
+            AudioEngine.addTrack(audioBuf, file.name);
+        } catch(err) { alert("Erro ao importar áudio."); }
         UI.hideOverlay();
         e.target.value = '';
     };
@@ -848,26 +917,26 @@
         else AudioEngine.play();
     };
     
-    document.getElementById('btnStopMaster').onclick = () => AudioEngine.stop();
+    document.getElementById('btnStopMaster').onclick = () => {
+        AudioEngine.stop();
+        AudioEngine.cursorPos = 0; // Reset
+        UI.updateAllCursors();
+    };
     
     document.getElementById('btnRecordMaster').onclick = () => {
-        if(AudioEngine.recorder && AudioEngine.recorder.state === 'recording') {
-            AudioEngine.stopRecording();
-        } else {
-            AudioEngine.startRecording();
-        }
+        if(AudioEngine.recorder && AudioEngine.recorder.state === 'recording') AudioEngine.stopRecording();
+        else AudioEngine.startRecording();
     };
     
     document.getElementById('btnExport').onclick = () => AudioEngine.exportMix();
 
-    // Master Vol Binding
     document.getElementById('masterVolSlider').oninput = (e) => {
         const val = parseFloat(e.target.value);
         AudioEngine.setMasterVolume(val);
         document.getElementById('masterVolDisplay').innerText = Math.round(val*100) + '%';
     };
 
-    // --- INSTALL BUTTON LOGIC ---
+    // --- INSTALL ---
     let deferredPrompt;
     const installBtn = document.getElementById('btnInstall');
 
@@ -884,9 +953,7 @@
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        showInstallButton();
+        e.preventDefault(); deferredPrompt = e; showInstallButton();
     });
 
     setTimeout(() => {
@@ -900,8 +967,7 @@
         }
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
+        deferredPrompt = null; installBtn.style.display = 'none';
     });
 
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
