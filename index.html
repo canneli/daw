@@ -39,14 +39,14 @@
                   radial-gradient(circle at 85% 85%, #1a0033 0%, transparent 45%);
     }
 
-    /* TOP MENU */
+    /* TOP NAV */
     .top-nav {
       height: 38px; background: rgba(0,0,0,0.8);
       display: flex; align-items: center; padding: 0 20px;
-      border-bottom: 1px solid var(--glass-border); font-size: 11px;
+      border-bottom: 1px solid var(--border); font-size: 11px;
       font-weight: 700; gap: 5px; z-index: 1000;
     }
-    .logo { font-weight: 900; letter-spacing: 1px; color: #fff; margin-right: 25px; text-transform: uppercase; }
+    .logo { font-weight: 900; letter-spacing: 1px; color: #fff; margin-right: 25px; text-transform: uppercase; cursor: default; }
     .logo span { color: var(--primary); font-size: 9px; margin-left: 4px; text-shadow: var(--glow); }
     
     .menu-wrap { position: relative; height: 100%; display: flex; align-items: center; }
@@ -54,7 +54,7 @@
     .menu-item:hover { color: #fff; background: var(--glass); }
 
     .dropdown {
-        position: absolute; top: 100%; left: 0; background: #12001a; border: 1px solid var(--glass-border);
+        position: absolute; top: 100%; left: 0; background: #12001a; border: 1px solid var(--border);
         min-width: 180px; display: none; flex-direction: column; padding: 8px 0;
         box-shadow: 0 15px 40px rgba(0,0,0,0.8); backdrop-filter: blur(20px);
     }
@@ -62,9 +62,9 @@
     .drop-btn { padding: 10px 18px; font-size: 11px; font-weight: 600; color: #bbb; cursor: pointer; }
     .drop-btn:hover { background: var(--primary); color: #fff; }
 
-    /* TOOLBAR & TRANSPORT */
+    /* HEADER */
     .app-header {
-      height: 80px; background: rgba(15, 5, 25, 0.85); backdrop-filter: blur(25px);
+      height: 75px; background: rgba(15, 5, 25, 0.85); backdrop-filter: blur(25px);
       border-bottom: 1px solid var(--glass-border);
       display: flex; align-items: center; padding: 0 25px;
       justify-content: space-between; z-index: 900;
@@ -82,11 +82,11 @@
 
     .transport { display: flex; align-items: center; gap: 15px; }
     .lcd {
-      background: #000; border: 2px solid rgba(255, 0, 85, 0.4);
+      background: #000; border: 2px solid rgba(255, 0, 85, 0.3);
       padding: 8px 22px; border-radius: 12px; display: flex; align-items: center; gap: 18px;
       box-shadow: inset 0 2px 10px rgba(0,0,0,1);
     }
-    #timer { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 22px; min-width: 135px; text-align: center; text-shadow: 0 0 10px var(--primary); }
+    #timer { font-family: 'Orbitron', sans-serif; color: var(--primary); font-size: 20px; min-width: 125px; text-align: center; text-shadow: 0 0 10px var(--primary); }
 
     .metro-box { display: flex; align-items: center; gap: 10px; border-left: 1px solid #333; padding-left: 15px; }
     .m-btn {
@@ -99,24 +99,21 @@
     .play-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: #fff; color: #000; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     .play-btn.active { background: var(--primary); color: #fff; box-shadow: var(--glow); }
 
-    /* LAYOUT MAIN */
+    /* WORKSPACE */
     .app-main { flex: 1; display: flex; overflow: hidden; }
 
-    /* INSPECTOR */
     #inspector {
-        width: 300px; background: rgba(10, 5, 20, 0.6); backdrop-filter: blur(40px);
+        width: 290px; background: rgba(10, 5, 20, 0.6); backdrop-filter: blur(40px);
         border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
         padding: 25px; gap: 20px; overflow-y: auto;
     }
-    .card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; }
-    .card-title { font-size: 11px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,0,85,0.1); padding-bottom: 8px; }
+    .card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 18px; }
+    .card-title { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid rgba(255,0,85,0.1); padding-bottom: 6px; }
 
-    /* ARRANGEMENT AREA */
     #arrangement-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: rgba(0,0,0,0.2); }
     
-    /* RULER */
     #ruler {
-        height: 35px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--glass-border);
+        height: 35px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--glass-border);
         position: relative; cursor: pointer; z-index: 100;
     }
     #playhead {
@@ -125,9 +122,8 @@
         box-shadow: 0 0 15px #fff; display: block;
     }
 
-    #tracks-area { flex: 1; overflow-y: auto; position: relative; padding-bottom: 100px; }
+    #tracks-area { flex: 1; overflow-y: auto; position: relative; }
 
-    /* TRACKS */
     .track { height: 150px; display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); transition: 0.2s; position: relative; }
     .track.selected { background: rgba(255, 0, 85, 0.05); border-left: 6px solid var(--primary); }
     
@@ -135,9 +131,9 @@
     .track-name { background: transparent; border: none; color: #fff; font-weight: 700; font-size: 16px; outline: none; width: 100%; letter-spacing: 0.5px; }
 
     .mixer-mini { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
-    .pan-rodinha { width: 38px; height: 38px; background: #0f111a; border-radius: 50%; border: 2.5px solid var(--glass-border); position: relative; cursor: ns-resize; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s; }
+    .pan-rodinha { width: 38px; height: 38px; background: #0f111a; border-radius: 50%; border: 2px solid var(--glass-border); position: relative; cursor: ns-resize; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s; }
     .pan-rodinha:hover { border-color: var(--primary); }
-    .pan-rodinha::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 9px; background: var(--primary); border-radius: 1px; transform-origin: center 15px; }
+    .pan-rodinha::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 9px; background: var(--primary); border-radius: 1px; transform-origin: center 14px; }
 
     .track-btns { display: flex; gap: 8px; }
     .b-sq { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--glass-border); background: var(--glass); color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
@@ -148,21 +144,19 @@
 
     @keyframes pulseRec { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    .wave-view { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.25); cursor: crosshair; }
+    .wave-view { flex: 1; position: relative; overflow: hidden; background: rgba(0,0,0,0.25); cursor: text; }
     canvas { width: 100%; height: 100%; display: block; }
 
-    /* FADERS */
     .eq-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .f-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .f-cell label { font-size: 9px; font-weight: 800; color: #666; }
-    .f-v { -webkit-appearance: slider-vertical; width: 12px; height: 120px; background: #222; border-radius: 6px; }
+    .f-cell label { font-size: 8px; font-weight: 800; color: #666; }
+    .f-v { -webkit-appearance: slider-vertical; width: 10px; height: 110px; background: #222; border-radius: 5px; }
 
-    input[type=range] { -webkit-appearance: none; background: #222; height: 4px; border-radius: 2px; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2.5px solid #000; box-shadow: 0 0 10px var(--primary); }
+    input[type=range] { -webkit-appearance: none; background: #222; height: 4px; border-radius: 2px; width: 100%; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 2px solid #000; box-shadow: 0 0 10px var(--primary); }
 
-    #toast { position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px; display: none; z-index: 2000; animation: slideIn 0.3s ease; }
+    #toast { position: fixed; bottom: 50px; right: 20px; background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 12px; display: none; z-index: 2000; animation: slideIn 0.3s ease; }
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
     #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--primary); font-weight: 900; letter-spacing: 10px; font-size: 24px; }
   </style>
 </head>
@@ -179,12 +173,12 @@
         <div class="dropdown">
             <div class="drop-btn" onclick="UI.toast('Novo Projeto')">Novo Projeto</div>
             <div class="drop-btn" onclick="document.getElementById('file-in').click()">Importar Áudio...</div>
-            <div class="drop-btn" onclick="UI.toast('Renderizando Master Mix...')">Exportar Mixdown</div>
+            <div class="drop-btn" onclick="UI.toast('Exportando...')">Exportar Mixdown</div>
         </div>
     </div>
     <div class="menu-wrap"><div class="menu-item">Editar</div></div>
     <div class="menu-wrap"><div class="menu-item" onclick="UI.toggleInsp()">Exibir</div></div>
-    <div style="margin-left: auto; color: var(--primary); font-weight: 800; font-size: 10px; letter-spacing: 1.5px;">ELITE DELUXE v12.0</div>
+    <div style="margin-left: auto; color: var(--primary); font-weight: 800; font-size: 10px; letter-spacing: 1.5px;">ELITE DELUXE v13.0</div>
   </nav>
 
   <!-- HEADER -->
@@ -194,13 +188,10 @@
         <svg viewBox="0 0 24 24"><path d="M7 2l12 11.2l-5.8 1.4l3.3 6.1l-2.2 1.2l-3.3-6.1L7 19.3V2z"/></svg>
       </button>
       <button class="tool-btn" id="tool-scissors" onclick="UI.setTool('scissors', this)" title="Tesoura (T)">
-        <svg viewBox="0 0 24 24"><path d="M19,3L13,9L15,11L22,4V3H19M12,10L9,13L11,15L15,11L12,10M3,3V4L10,11L8,13L2,7V6H3V3M5,17A3,3 0 0,0 2,20A3,3 0 0,0 5,23A3,3 0 0,0 8,20A3,3 0 0,0 5,17M5,19A1,1 0 0,1 6,20A1,1 0 0,1 5,21A1,1 0 0,1 4,20A1,1 0 0,1 5,19M19,17A3,3 0 0,0 16,20A3,3 0 0,0 19,23A3,3 0 0,0 22,20A3,3 0 0,0 19,17M19,19A1,1 0 0,1 20,20A1,1 0 0,1 19,21A1,1 0 0,1 18,20A1,1 0 0,1 19,19Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
       </button>
       <button class="tool-btn" id="tool-eraser" onclick="UI.setTool('eraser', this)" title="Borracha (E)">
         <svg viewBox="0 0 24 24"><path d="M16.2 3.3L20.7 7.8c.4.4.4 1 0 1.4L11.5 18.5c-.2.2-.4.3-.7.3H5c-.6 0-1-.4-1-1v-5.8c0-.3.1-.5.3-.7l9.2-9.2c.5-.3 1.1-.3 1.7.2zM15.5 10l-4-4l-7.5 7.5V17h3.5L15.5 10z"/></svg>
-      </button>
-      <button class="tool-btn" onclick="document.getElementById('file-in').click()" title="Importar">
-        <svg viewBox="0 0 24 24"><path d="M11 15h2V9h3l-4-5-4 5h3v6zM4 18h16v-2h2v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-2h2v2z"/></svg>
       </button>
     </div>
 
@@ -220,32 +211,32 @@
       </div>
     </div>
 
-    <button class="tool-btn" style="background: rgba(136,0,255,0.15); color: #fff;">💾</button>
+    <button class="tool-btn" onclick="document.getElementById('file-in').click()" style="background: rgba(136,0,255,0.15); color: #fff;">📂</button>
   </header>
 
   <!-- WORKSPACE -->
   <div class="app-main">
     <aside id="inspector">
       <div class="card">
-        <span class="card-title">Canal Ativo</span>
+        <span class="card-title">Mixer Strip</span>
         <p id="ins-track-label" style="font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 12px 0;">Faixa 1</p>
-        <label style="font-size: 10px; font-weight: 800; color: #666;">FADER GAIN</label>
-        <input type="range" min="0" max="1.5" step="0.01" value="1" id="ins-vol" oninput="Engine.updateTrack('volume', this.value)">
+        <label style="font-size: 10px; font-weight: 800; color: #666;">GAIN INPUT</label>
+        <input type="range" min="0" max="1.5" step="0.01" value="1" id="ins-vol" oninput="Engine.updateTrackParam('volume', this.value)">
       </div>
 
       <div class="card">
         <span class="card-title">Equalização</span>
         <div class="eq-row">
-          <div class="f-cell"><input type="range" class="f-v" id="eq-l" min="-15" max="15" value="0" oninput="Engine.updateEQ('low', this.value)"><label>LOW</label></div>
-          <div class="f-cell"><input type="range" class="f-v" id="eq-m" min="-15" max="15" value="0" oninput="Engine.updateEQ('mid', this.value)"><label>MID</label></div>
-          <div class="f-cell"><input type="range" class="f-v" id="eq-h" min="-15" max="15" value="0" oninput="Engine.updateEQ('high', this.value)"><label>HIGH</label></div>
+          <div class="f-cell"><input type="range" class="f-v" id="eq-l" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('low', this.value)"><label>LOW</label></div>
+          <div class="f-cell"><input type="range" class="f-v" id="eq-m" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('mid', this.value)"><label>MID</label></div>
+          <div class="f-cell"><input type="range" class="f-v" id="eq-h" min="-15" max="15" value="0" oninput="Engine.updateTrackParam('high', this.value)"><label>HIGH</label></div>
         </div>
       </div>
 
       <div class="card">
-        <span class="card-title">Rack de Plugins</span>
-        <select id="ins-fx" style="width:100%; padding:14px; background:#000; color:#fff; border:1px solid var(--glass-border); border-radius:10px; font-size:12px; font-weight:800;" onchange="Engine.updateTrack('fx', this.value)">
-          <option value="none">S/ Efeito</option>
+        <span class="card-title">Plugins Rack</span>
+        <select id="ins-fx" style="width:100%; padding:14px; background:#000; color:#fff; border:1px solid var(--glass-border); border-radius:10px; font-size:12px; font-weight:800;" onchange="Engine.updateTrackParam('fx', this.value)">
+          <option value="none">Slot Vazio</option>
           <option value="studio">Studio Hall</option>
           <option value="magic">Magic Bright</option>
           <option value="robotic">Robotic Vox</option>
@@ -262,14 +253,12 @@
         <div id="ruler" onmousedown="UI.seekerDrag(event)">
             <div id="playhead"></div>
         </div>
-        <main id="tracks-area">
-            <!-- Tracks aqui -->
-        </main>
+        <main id="tracks-area"></main>
     </div>
   </div>
 
-  <div id="overlay">PROCESSANDO ÁUDIO...</div>
-  <div id="toast">Ação Executada</div>
+  <div id="overlay">PROCESSANDO...</div>
+  <div id="toast">Pronto</div>
   <input type="file" id="file-in" hidden accept="audio/*" multiple>
 
   <script>
@@ -277,7 +266,7 @@
       ctx: null, tracks: [], isPlaying: false, startTime: 0,
       masterGain: null, maxDur: 10, selId: null,
       tool: 'pointer', recorder: null, chunks: [],
-      metroOn: false, bpm: 120, nextClick: 0, cursorPos: 0,
+      metroOn: false, bpm: 120, cursorPos: 0,
 
       async init() {
         if (!this.ctx) {
@@ -297,7 +286,7 @@
 
         const track = {
           id, name: fname, buffer, volume: 1.0, pan: 0, muted: false, armed: false, fx: 'none',
-          fxParams: { intensity: 0.5 }, eq: { l, m, h, vals: {low:0, mid:0, high:0} }, node: null,
+          fxIntensity: 0.5, eqVals: {low:0, mid:0, high:0}, nodes: null,
           selStart: 0, selEnd: 0
         };
         this.tracks.push(track);
@@ -313,21 +302,27 @@
         this.maxDur = max;
       },
 
-      updateTrack(type, val) {
+      updateTrackParam(type, val) {
         const t = this.tracks.find(x => x.id === this.selId); if(!t) return;
+        
         if(type === 'volume') t.volume = parseFloat(val);
+        if(type === 'pan') t.pan = parseFloat(val);
         if(type === 'fx') t.fx = val;
-        UI.render(); UI.updateInspector();
-      },
+        if(type === 'low' || type === 'mid' || type === 'high') t.eqVals[type] = parseFloat(val);
+        if(type === 'intensity') t.fxIntensity = parseFloat(val);
 
-      updateEQ(band, val) {
-        const t = this.tracks.find(x => x.id === this.selId); if(!t || !t.eq.l) return;
-        t.eq.vals[band] = parseFloat(val);
-        const map = { low: t.eq.l, mid: t.eq.m, high: t.eq.h };
-        map[band].gain.setValueAtTime(parseFloat(val), this.ctx.currentTime);
-      },
+        // ATUALIZAÇÃO EM TEMPO REAL
+        if (t.nodes) {
+            if(type === 'volume') t.nodes.gain.gain.setTargetAtTime(t.muted ? 0 : t.volume, this.ctx.currentTime, 0.05);
+            if(type === 'pan') t.nodes.panner.pan.setTargetAtTime(t.pan, this.ctx.currentTime, 0.05);
+            if(type === 'low') t.nodes.eqL.gain.setTargetAtTime(t.eqVals.low, this.ctx.currentTime, 0.05);
+            if(type === 'mid') t.nodes.eqM.gain.setTargetAtTime(t.eqVals.mid, this.ctx.currentTime, 0.05);
+            if(type === 'high') t.nodes.eqH.gain.setTargetAtTime(t.eqVals.high, this.ctx.currentTime, 0.05);
+        }
 
-      toggleMetro() { this.metroOn = !this.metroOn; document.getElementById('m-btn').classList.toggle('active', this.metroOn); },
+        UI.render();
+        UI.updateInspector();
+      },
 
       play() {
         this.init(); if(this.isPlaying) this.stop();
@@ -340,19 +335,22 @@
           const s = this.ctx.createBufferSource(); s.buffer = t.buffer;
           const g = this.ctx.createGain(); g.gain.value = t.muted ? 0 : t.volume;
           const p = this.ctx.createStereoPanner(); p.pan.value = t.pan;
-          let chain = s;
-          chain.connect(t.eq.l); t.eq.l.connect(t.eq.m); t.eq.m.connect(t.eq.h);
-          chain = t.eq.h;
-          chain.connect(p); p.connect(g); g.connect(this.masterGain);
-          s.start(0, offset); t.node = s;
+          
+          const eqL = this.ctx.createBiquadFilter(); eqL.type = 'lowshelf'; eqL.frequency.value = 320; eqL.gain.value = t.eqVals.low;
+          const eqM = this.ctx.createBiquadFilter(); eqM.type = 'peaking'; eqM.frequency.value = 1000; eqM.gain.value = t.eqVals.mid;
+          const eqH = this.ctx.createBiquadFilter(); eqH.type = 'highshelf'; eqH.frequency.value = 3200; eqH.gain.value = t.eqVals.high;
+
+          s.connect(eqL); eqL.connect(eqM); eqM.connect(eqH); eqH.connect(p); p.connect(g); g.connect(this.masterGain);
+          
+          s.start(0, offset);
+          t.nodes = { source: s, gain: g, panner: p, eqL, eqM, eqH };
         });
         this.isPlaying = true; UI.updateTransport(true); UI.startCursor();
       },
 
       stop() {
-        this.tracks.forEach(t => { if(t.node) { try{t.node.stop();}catch(e){} t.node = null; } });
+        this.tracks.forEach(t => { if(t.nodes) { try{t.nodes.source.stop();}catch(e){} t.nodes = null; } });
         this.isPlaying = false; UI.updateTransport(false); UI.stopCursor();
-        this.stopRec();
       },
 
       async recAction() {
@@ -369,34 +367,9 @@
             armed.buffer = buf; armed.armed = false; UI.render(); this.updateMax();
           };
           this.recorder.start(); document.getElementById('r-master').classList.add('active');
-        } catch(e) { alert("Microfone Offline."); }
+        } catch(e) { alert("Erro de microfone."); }
       },
-      stopRec() { if(this.recorder && this.recorder.state === 'recording') { this.recorder.stop(); document.getElementById('r-master').classList.remove('active'); } },
-
-      cutSelectedRegion(id) {
-          const t = this.tracks.find(x => x.id === id);
-          if(!t || !t.buffer || t.selStart === t.selEnd) return;
-          UI.loading(true);
-          const oldBuf = t.buffer;
-          const rate = oldBuf.sampleRate;
-          const startFrame = t.selStart * oldBuf.length;
-          const endFrame = t.selEnd * oldBuf.length;
-          const newLength = oldBuf.length - (endFrame - startFrame);
-          
-          if(newLength <= 0) { t.buffer = null; } 
-          else {
-              const newBuf = this.ctx.createBuffer(oldBuf.numberOfChannels, newLength, rate);
-              for(let c=0; c<oldBuf.numberOfChannels; c++) {
-                  const oldData = oldBuf.getChannelData(c);
-                  const newData = newBuf.getChannelData(c);
-                  newData.set(oldData.subarray(0, startFrame));
-                  newData.set(oldData.subarray(endFrame), startFrame);
-              }
-              t.buffer = newBuf;
-          }
-          t.selStart = 0; t.selEnd = 0;
-          this.updateMax(); UI.render(); UI.loading(false);
-      }
+      stopRec() { if(this.recorder && this.recorder.state === 'recording') { this.recorder.stop(); document.getElementById('r-master').classList.remove('active'); } }
     };
 
     const UI = {
@@ -412,17 +385,17 @@
         Engine.tracks.forEach(t => {
           const div = document.createElement('div');
           div.className = `track ${t.id === Engine.selId ? 'selected' : ''}`;
-          div.onclick = () => { Engine.selId = t.id; UI.render(); UI.updateInspector(); };
+          div.onclick = () => { Engine.selId = t.id; UI.updateInspector(); document.querySelectorAll('.track').forEach(tr => tr.classList.remove('selected')); div.classList.add('selected'); };
           div.innerHTML = `
             <div class="track-head">
               <input type="text" class="track-name" value="${t.name}">
               <div class="mixer-mini">
                 <div class="pan-box"><div class="pan-rodinha" id="knob-${t.id}" style="transform: rotate(${t.pan*135}deg)" onmousedown="UI.knobDrag(event, ${t.id})"></div><span class="pan-label">PAN</span></div>
                 <div class="track-btns">
-                  <button class="b-sq ${t.armed?'rec-active':''}" onclick="event.stopPropagation(); Engine.tracks.forEach(x=>x.armed=false); Engine.tracks.find(x=>x.id===${t.id}).armed=true; UI.render();">●</button>
-                  <button class="b-sq ${t.muted?'m-active':''}" onclick="event.stopPropagation(); Engine.tracks.find(x=>x.id===${t.id}).muted=!Engine.tracks.find(x=>x.id===${t.id}).muted; UI.render();">M</button>
-                  <button class="b-sq ${t.fx!=='none'?'fx-active':''}" onclick="event.stopPropagation(); Engine.selId = ${t.id}; UI.render(); UI.updateInspector();">FX</button>
-                  <button class="b-sq" onclick="event.stopPropagation(); if(Engine.tracks.length > 1) { Engine.tracks = Engine.tracks.filter(x=>x.id!==${t.id}); UI.render(); }">✕</button>
+                  <button class="b-sq ${t.armed?'rec-active':''}" onclick="event.stopPropagation(); Engine.tracks.forEach(x=>x.armed=false); t.armed=true; UI.render();">●</button>
+                  <button class="b-sq ${t.muted?'m-active':''}" onclick="event.stopPropagation(); t.muted=!t.muted; UI.render();">M</button>
+                  <button class="b-sq ${t.fx!=='none'?'fx-active':''}" onclick="event.stopPropagation(); Engine.selId = ${t.id}; UI.updateInspector();">FX</button>
+                  <button class="b-sq" onclick="event.stopPropagation(); Engine.tracks = Engine.tracks.filter(x=>x.id!==${t.id}); UI.render();">✕</button>
                 </div>
               </div>
             </div>
@@ -441,9 +414,11 @@
           const rect = document.getElementById(`wv-${id}`).getBoundingClientRect();
           const startX = (e.clientX - rect.left) / rect.width;
           
-          if(Engine.tool === 'scissors' && t.selStart !== t.selEnd) {
-              Engine.cutSelectedRegion(id);
-              return;
+          if(Engine.tool === 'scissors') {
+              if (t.selStart !== t.selEnd) {
+                Engine.cutSelectedRegion(id);
+                return;
+              }
           }
           if(Engine.tool === 'eraser') {
               Engine.tracks = Engine.tracks.filter(x => x.id !== id);
@@ -453,8 +428,8 @@
 
           const move = (mv) => {
               const currentX = (mv.clientX - rect.left) / rect.width;
-              t.selStart = Math.max(0, Math.min(startX, currentX));
-              t.selEnd = Math.max(0, Math.min(1, Math.max(startX, currentX)));
+              t.selStart = Math.min(startX, currentX);
+              t.selEnd = Math.max(startX, currentX);
               UI.drawWave(t);
           };
           const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
@@ -470,6 +445,7 @@
             const m = Math.floor(time / 60).toString().padStart(2,'0');
             const s = Math.floor(time % 60).toString().padStart(2,'0');
             document.getElementById('timer').innerText = `${m}:${s}:00`;
+            if (Engine.isPlaying) Engine.play();
         };
         update(e);
         const mm = (me) => update(me);
@@ -486,32 +462,29 @@
       knobDrag(e, id) {
         e.stopPropagation();
         const startY = e.clientY; const t = Engine.tracks.find(x => x.id === id); const sp = t.pan;
-        const move = (m) => { let d = (startY - m.clientY) / 100; t.pan = Math.max(-1, Math.min(1, sp+d)); UI.render(); };
+        const move = (m) => { let d = (startY - m.clientY) / 100; Engine.updateTrackParam('pan', Math.max(-1, Math.min(1, sp+d))); };
         const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
         window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
       },
 
       drawWave(t) {
-        setTimeout(() => {
-          const cv = document.getElementById(`cv-${t.id}`); if(!cv) return;
-          const ctx = cv.getContext('2d'); const w = cv.width = cv.offsetWidth; const h = cv.height = cv.offsetHeight;
-          ctx.clearRect(0,0,w,h);
-          if(!t.buffer) { ctx.strokeStyle="#333"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); return; }
-          
-          const data = t.buffer.getChannelData(0); const step = Math.ceil(data.length / w); const amp = h / 2;
-          const g = ctx.createLinearGradient(0,0,0,h);
-          g.addColorStop(0, t.muted ? '#475569' : '#ff0055'); g.addColorStop(1, t.muted ? '#1e293b' : '#8800ff');
-          ctx.fillStyle = g;
-          for(let i=0; i<w; i++){
-            let min=1, max=-1; for(let j=0; j<step; j++){ const d=data[(i*step)+j]; if(d<min)min=d; if(d>max)max=d;}
-            ctx.fillRect(i, (1+min)*amp, 1, Math.max(1.5, (max-min)*amp));
-          }
-
-          if(t.selStart !== t.selEnd) {
-              ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-              ctx.fillRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
-          }
-        }, 30);
+        const cv = document.getElementById(`cv-${t.id}`); if(!cv) return;
+        const ctx = cv.getContext('2d'); const w = cv.width = cv.offsetWidth; const h = cv.height = cv.offsetHeight;
+        ctx.clearRect(0,0,w,h);
+        if(!t.buffer) { ctx.strokeStyle="#333"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); return; }
+        const data = t.buffer.getChannelData(0); const step = Math.ceil(data.length / w); const amp = h / 2;
+        const g = ctx.createLinearGradient(0,0,0,h);
+        g.addColorStop(0, t.muted ? '#444' : '#ff0055'); g.addColorStop(1, t.muted ? '#222' : '#8800ff');
+        ctx.fillStyle = g;
+        for(let i=0; i<w; i++){
+          let min=1, max=-1; for(let j=0; j<step; j++){ const d=data[(i*step)+j]; if(d<min)min=d; if(d>max)max=d;}
+          ctx.fillRect(i, (1+min)*amp, 1, Math.max(1.5, (max-min)*amp));
+        }
+        if(t.selStart !== t.selEnd) {
+            ctx.fillStyle = "rgba(0, 242, 255, 0.2)";
+            ctx.fillRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
+            ctx.strokeStyle = var(--accent); ctx.strokeRect(t.selStart * w, 0, (t.selEnd - t.selStart) * w, h);
+        }
       },
 
       updateInspector() {
@@ -519,9 +492,11 @@
         document.getElementById('ins-track-label').innerText = t.name;
         document.getElementById('ins-vol').value = t.volume;
         document.getElementById('ins-fx').value = t.fx;
-        document.getElementById('eq-l').value = t.eq.vals.low; document.getElementById('eq-m').value = t.eq.vals.mid; document.getElementById('eq-h').value = t.eq.vals.high;
+        document.getElementById('eq-l').value = t.eqVals.low;
+        document.getElementById('eq-m').value = t.eqVals.mid;
+        document.getElementById('eq-h').value = t.eqVals.high;
         const fxp = document.getElementById('fx-params'); fxp.innerHTML = '';
-        if(t.fx !== 'none') fxp.innerHTML = `<label style="font-size:8px; font-weight:800; color:var(--accent);">WET MIX INTENSITY</label><input type="range" min="0" max="1" step="0.01" value="${t.fxParams.intensity}" oninput="Engine.tracks.find(x=>x.id===${t.id}).fxParams.intensity=this.value">`;
+        if(t.fx !== 'none') fxp.innerHTML = `<label style="font-size:8px; font-weight:800; color:var(--accent);">WET MIX</label><input type="range" min="0" max="1" step="0.01" value="${t.fxIntensity}" oninput="Engine.updateTrackParam('intensity', this.value)">`;
       },
 
       startCursor() {
@@ -532,8 +507,7 @@
           this.updatePlayhead();
           const m = Math.floor(elap / 60).toString().padStart(2, '0');
           const s = Math.floor(elap % 60).toString().padStart(2, '0');
-          const ms = Math.floor((elap % 1) * 100).toString().padStart(2, '0');
-          document.getElementById('timer').innerText = `${m}:${s}:${ms}`;
+          document.getElementById('timer').innerText = `${m}:${s}:00`;
           if(Engine.cursorPos < 1) this.cRaf = requestAnimationFrame(loop); else Engine.stop();
         };
         this.cRaf = requestAnimationFrame(loop);
@@ -542,7 +516,7 @@
     };
 
     document.getElementById('file-in').onchange = async e => {
-      const files = e.target.files; if(files.length){ await Engine.init(); for(let f of files){ try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(err) { UI.toast('Erro!'); } } }
+      const files = e.target.files; if(files.length){ await Engine.init(); for(let f of files){ try { const buf = await Engine.ctx.decodeAudioData(await f.arrayBuffer()); Engine.addTrack(buf, f.name); } catch(err) { UI.toast('Erro ao carregar'); } } }
     };
 
     window.onload = () => { Engine.init().then(() => { Engine.addTrack(null, "Faixa 1"); UI.render(); }); };
